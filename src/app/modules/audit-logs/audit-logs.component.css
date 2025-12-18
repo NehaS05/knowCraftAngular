@@ -1,0 +1,163 @@
+.audit-logs-container {
+  padding: 32px 40px;
+  background: var(--main-bg);
+  min-height: calc(100vh - 60px);
+}
+
+.audit-logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.audit-logs-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-btn:hover {
+  background: #1d4ed8;
+}
+
+.export-btn:active {
+  transform: scale(0.98);
+}
+
+.search-section {
+  margin-bottom: 24px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 400px;
+  padding: 10px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+.search-box:focus-within {
+  border-color: #2563eb;
+}
+
+.search-box svg {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.search-box input::placeholder {
+  color: var(--text-secondary);
+}
+
+.logs-table-container {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.logs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.logs-table thead {
+  background: var(--input-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logs-table th {
+  padding: 14px 20px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.logs-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.logs-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.logs-table tbody tr:hover {
+  background: var(--nav-hover-bg);
+}
+
+.logs-table td {
+  padding: 16px 20px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.role-badge.internal {
+  background: #2563eb;
+  color: white;
+}
+
+.role-badge.client {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state p {
+  font-size: 15px;
+  margin: 0;
+}

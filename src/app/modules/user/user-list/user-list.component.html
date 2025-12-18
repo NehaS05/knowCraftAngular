@@ -1,0 +1,51 @@
+<div class="user-management">
+  <div class="header">
+    <div class="header-content">
+      <h1>User Management</h1>
+      <p>Manage system users</p>
+    </div>
+    <button class="add-btn" (click)="openAddModal()">
+      <span>+</span> Add User
+    </button>
+  </div>
+
+  <div class="table-container">
+    <table class="user-table">
+      <thead>
+        <tr>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Email</th>
+          <th>Mobile Number</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users" class="user-row">
+          <td>{{ user.firstName }}</td>
+          <td>{{ user.lastName }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.mobileNumber }}</td>
+          <td class="actions-cell">
+            <button class="edit-btn" (click)="editUser(user)">Edit</button>
+            <button class="delete-btn" (click)="deleteUser(user.id!)">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="users.length === 0">
+          <td colspan="5" class="no-users">No users added yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <app-modal 
+    [isOpen]="isModalOpen" 
+    [title]="modalTitle"
+    (closeModal)="closeModal()">
+    <app-user-form 
+      [user]="selectedUser"
+      (userSaved)="onUserSaved($event)"
+      (cancelled)="closeModal()">
+    </app-user-form>
+  </app-modal>
+</div>

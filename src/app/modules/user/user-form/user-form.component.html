@@ -1,0 +1,61 @@
+<form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label for="firstName">First Name</label>
+    <input 
+      type="text" 
+      id="firstName" 
+      formControlName="firstName"
+      [class.error]="isFieldInvalid('firstName')"
+      placeholder="Enter first name">
+    <div class="error-message" *ngIf="isFieldInvalid('firstName')">
+      First name is required
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="lastName">Last Name</label>
+    <input 
+      type="text" 
+      id="lastName" 
+      formControlName="lastName"
+      [class.error]="isFieldInvalid('lastName')"
+      placeholder="Enter last name">
+    <div class="error-message" *ngIf="isFieldInvalid('lastName')">
+      Last name is required
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input 
+      type="email" 
+      id="email" 
+      formControlName="email"
+      [class.error]="isFieldInvalid('email')"
+      placeholder="Enter email address">
+    <div class="error-message" *ngIf="isFieldInvalid('email')">
+      <span *ngIf="userForm.get('email')?.errors?.['required']">Email is required</span>
+      <span *ngIf="userForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="mobileNumber">Mobile Number</label>
+    <input 
+      type="tel" 
+      id="mobileNumber" 
+      formControlName="mobileNumber"
+      [class.error]="isFieldInvalid('mobileNumber')"
+      placeholder="Enter mobile number">
+    <div class="error-message" *ngIf="isFieldInvalid('mobileNumber')">
+      Mobile number is required
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="cancel-btn" (click)="onCancel()">Cancel</button>
+    <button type="submit" class="submit-btn" [disabled]="userForm.invalid">
+      {{ user ? 'Update User' : 'Add User' }}
+    </button>
+  </div>
+</form>

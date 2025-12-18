@@ -1,0 +1,47 @@
+<div class="sidebar" [class.collapsed]="isCollapsed">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">KC</div>
+      <span class="logo-text" *ngIf="!isCollapsed">KnowCraft AI</span>
+    </div>
+    <div class="subtitle" *ngIf="!isCollapsed">Intelligent Audit Assistant</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-title" *ngIf="!isCollapsed">Navigation</div>
+      <ul class="nav-list">
+        <li *ngFor="let item of menuItems" 
+            class="nav-item" 
+            [class.active]="item.active"
+            (click)="navigateTo(item.route)"
+            [title]="isCollapsed ? item.label : ''">
+          <span class="nav-icon" [innerHTML]="item.safeIcon"></span>
+          <span class="nav-label" *ngIf="!isCollapsed">{{ item.label }}</span>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="logout-menu" *ngIf="showLogoutMenu">
+      <div class="logout-option" (click)="logout()">
+        <span class="logout-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </span>
+        <span class="logout-text" *ngIf="!isCollapsed">Logout</span>
+      </div>
+    </div>
+    <div class="user-info" (click)="toggleLogoutMenu()">
+      <div class="user-avatar">AS</div>
+      <div class="user-details" *ngIf="!isCollapsed">
+        <div class="user-name">as</div>
+        <div class="user-badge">INTERNAL TEAM</div>
+      </div>
+    </div>
+  </div>
+</div>

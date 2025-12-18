@@ -1,0 +1,332 @@
+<div class="knowledge-container">
+  <div class="knowledge-header">
+    <div class="header-content">
+      <h1 *ngIf="activeTab === 'add'">Add Knowledge Sources</h1>
+      <h1 *ngIf="activeTab === 'view'">Knowledge Base</h1>
+      <p class="subtitle" *ngIf="activeTab === 'add'">Choose how you'd like to add knowledge to your AI assistant. You can upload files, connect websites, or paste text directly.</p>
+      <p class="subtitle" *ngIf="activeTab === 'view'">View and manage your knowledge sources.</p>
+    </div>
+    <div class="header-actions">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'add'"
+        (click)="setActiveTab('add')">
+        Add
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'view'"
+        (click)="setActiveTab('view')">
+        View
+      </button>
+    </div>
+  </div>
+
+  <div class="knowledge-content" *ngIf="activeTab === 'add'">
+    <div class="knowledge-grid">
+      <!-- File Upload -->
+      <div class="knowledge-card" (click)="openFileUpload()">
+        <div class="card-icon blue">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+            <polyline points="13 2 13 9 20 9"></polyline>
+          </svg>
+        </div>
+        <h3>File Upload</h3>
+        <p>Upload PDF, DOC, TXT files</p>
+        <button class="add-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add
+        </button>
+      </div>
+
+      <!-- Website URL -->
+      <div class="knowledge-card" (click)="openWebsiteUrl()">
+        <div class="card-icon green">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+        </div>
+        <h3>Website URL</h3>
+        <p>Add a single web page</p>
+        <button class="add-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add
+        </button>
+      </div>
+
+      <!-- Text Content -->
+      <div class="knowledge-card" (click)="openTextContent()">
+        <div class="card-icon orange">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 7 4 4 20 4 20 7"></polyline>
+            <line x1="9" y1="20" x2="15" y2="20"></line>
+            <line x1="12" y1="4" x2="12" y2="20"></line>
+          </svg>
+        </div>
+        <h3>Text Content</h3>
+        <p>Paste or write text directly</p>
+        <button class="add-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add
+        </button>
+      </div>
+
+      <!-- Q&A Pairs -->
+      <div class="knowledge-card" (click)="openQAPairs()">
+        <div class="card-icon red">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <h3>Q&A Pairs</h3>
+        <p>Add question and answer pairs</p>
+        <button class="add-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="knowledge-content" *ngIf="activeTab === 'view'">
+    <div class="sources-section">
+      <div class="section-header">
+        <h3>Your Sources</h3>
+        <p class="section-subtitle">Manage and monitor your knowledge sources</p>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3h18v18H3z"></path>
+              <path d="M3 9h18"></path>
+              <path d="M9 21V9"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ knowledgeSources.length }}</div>
+            <div class="stat-label">Total Sources</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ getReadyCount() }}</div>
+            <div class="stat-label">Ready</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ getProcessingCount() }}</div>
+            <div class="stat-label">Processing</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon red">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ getFailedCount() }}</div>
+            <div class="stat-label">Failed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sources Table -->
+      <div class="sources-table-container" *ngIf="knowledgeSources.length > 0">
+        <table class="sources-table">
+          <thead>
+            <tr>
+              <th>SR</th>
+              <th>SOURCE NAME</th>
+              <th>SOURCE TYPE</th>
+              <th>FILE</th>
+              <th>CATEGORY</th>
+              <th>CONDITION</th>
+              <th>OPTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let source of knowledgeSources; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>{{ source.name }}</td>
+              <td>{{ getSourceTypeLabel(source.type) }}</td>
+              <td>
+                <span class="file-link" *ngIf="source.fileName">{{ source.fileName }}</span>
+                <span *ngIf="source.url" class="url-link">{{ source.url }}</span>
+                <span *ngIf="!source.fileName && !source.url">-</span>
+              </td>
+              <td>{{ source.category || '-' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="source.status">
+                  {{ source.status }}
+                </span>
+              </td>
+              <td>
+                <div class="table-actions">
+                  <button class="table-action-btn" title="Edit" (click)="editSource(source)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+                  <button class="table-action-btn delete" title="Delete" (click)="deleteSource(source.id)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sources-empty" *ngIf="knowledgeSources.length === 0">
+        <p>No knowledge sources added yet.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add New Source Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditMode ? 'Edit Source' : 'Add New Source' }}</h3>
+      <button class="close-btn" (click)="closeModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Source Name -->
+      <div class="form-group">
+        <label>Source Name</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Enter a name for this source"
+          [(ngModel)]="sourceName" />
+      </div>
+
+      <!-- Source Type -->
+      <div class="form-group">
+        <label>Source Type</label>
+        <select class="form-control" [(ngModel)]="selectedSourceType">
+          <option *ngFor="let type of sourceTypes" [value]="type.value">
+            {{ type.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- File Upload (shown only when File Upload is selected) -->
+      <div class="form-group" *ngIf="selectedSourceType === 'file'">
+        <label>File Upload</label>
+        <div class="file-input-wrapper">
+          <input 
+            type="file" 
+            #fileInput
+            (change)="onFileSelect($event)"
+            accept=".pdf,.doc,.docx,.txt"
+            style="display: none;" />
+          <button class="file-select-btn" (click)="fileInput.click()">
+            Choose File
+          </button>
+          <span class="file-name">{{ selectedFile?.name || 'No file chosen' }}</span>
+        </div>
+      </div>
+
+      <!-- Website URL (shown only when Website URL is selected) -->
+      <div class="form-group" *ngIf="selectedSourceType === 'website'">
+        <label>Website URL</label>
+        <input 
+          type="url" 
+          class="form-control" 
+          placeholder="https://example.com"
+          [(ngModel)]="websiteUrl" />
+      </div>
+
+      <!-- Text Content (shown only when Text Content is selected) -->
+      <div class="form-group" *ngIf="selectedSourceType === 'text'">
+        <label>Text Content</label>
+        <textarea 
+          class="form-control text-area" 
+          rows="8"
+          placeholder="Enter your text content here..."
+          [(ngModel)]="textContent"></textarea>
+      </div>
+
+      <!-- Q&A Pairs (shown only when Q&A Pairs is selected) -->
+      <div class="form-group" *ngIf="selectedSourceType === 'qa'">
+        <label>Q&A Content (format: Q: question A: answer)</label>
+        <textarea 
+          class="form-control text-area" 
+          rows="8"
+          placeholder="Q: What is AI?&#10;A: Artificial Intelligence is..."
+          [(ngModel)]="qaContent"></textarea>
+      </div>
+
+      <!-- Category (Optional) -->
+      <div class="form-group">
+        <label>Category (Optional)</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="e.g., Documentation, FAQ, etc."
+          [(ngModel)]="category" />
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="addSource()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        {{ isEditMode ? 'Update Source' : 'Add Source' }}
+      </button>
+    </div>
+  </div>
+</div>

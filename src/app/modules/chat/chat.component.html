@@ -1,0 +1,177 @@
+<div class="chat-container">
+  <div class="conversations-sidebar">
+    <div class="conversations-header">
+      <h3>Conversations</h3>
+      <button class="new-conversation-btn" (click)="createNewConversation()" title="New Conversation">+</button>
+    </div>
+
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="Search conversations..." 
+        [(ngModel)]="searchQuery" />
+    </div>
+
+    <div class="conversation-list">
+      <div 
+        *ngFor="let conversation of filteredConversations" 
+        class="conversation-item" 
+        [class.active]="isConversationActive(conversation)"
+        (click)="selectConversation(conversation)">
+        <div class="conversation-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </div>
+        <div class="conversation-details">
+          <div class="conversation-title">{{ conversation.title }}</div>
+          <div class="conversation-preview">{{ conversation.preview }}</div>
+          <div class="conversation-time">{{ conversation.time }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-main">
+    <div class="chat-header">
+      <div>
+        <h2>{{ selectedConversation?.title || 'New Conversation' }}</h2>
+        <p class="chat-status">Active conversation</p>
+      </div>
+    </div>
+
+    <div class="messages-container" #messagesContainer>
+      <div class="messages">
+        <ng-container *ngFor="let message of currentMessages">
+          <!-- AI Message -->
+          <div 
+            *ngIf="!message.isUser"
+            class="message ai-message">
+            <div class="message-avatar">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot w-5 h-5"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>
+            </div>
+            <div class="message-wrapper">
+              <div class="message-content">
+                {{ message.content }}
+              </div>
+              <div class="message-meta">
+                <span class="message-time">{{ getTimeAgo(message.timestamp) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Message -->
+          <div 
+            *ngIf="message.isUser"
+            class="message user-message">
+            <div class="message-wrapper">
+              <div class="message-content">
+                {{ message.content }}
+              </div>
+              <div class="message-meta">
+                <span class="message-time">{{ getTimeAgo(message.timestamp) }}</span>
+                <!-- <span class="message-badge">INTERNAL</span> -->
+              </div>
+            </div>
+            <div class="message-avatar">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <div class="chat-input-container">
+      <div class="chat-input-wrapper">
+        <input 
+          type="text" 
+          class="chat-input-field"
+          placeholder="Ask a question..." 
+          [(ngModel)]="newMessage"
+          (keypress)="onKeyPress($event)" />
+        <div class="input-actions">
+          <button class="attach-btn" (click)="openUploadModal()" title="Attach file">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+            </svg>
+          </button>
+          <button class="send-btn" (click)="sendMessage()" title="Send message">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="chat-footer">
+        Press Enter to send, Shift+Enter for new line
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- File Upload Modal -->
+<div class="modal-overlay" *ngIf="showUploadModal" (click)="closeUploadModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Upload Files</h3>
+      <button class="close-btn" (click)="closeUploadModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="upload-area" (click)="fileInput.click()">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <p class="upload-text">Click to upload files</p>
+        <p class="upload-hint">PDF, DOC, TXT, images (Max 10MB each)</p>
+        <input 
+          #fileInput 
+          type="file" 
+          multiple 
+          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+          (change)="onFileSelect($event)"
+          style="display: none;" />
+      </div>
+
+      <div class="selected-files" *ngIf="selectedFiles.length > 0">
+        <h4>Selected Files ({{ selectedFiles.length }})</h4>
+        <div class="file-list">
+          <div class="file-item" *ngFor="let file of selectedFiles; let i = index">
+            <div class="file-info">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                <polyline points="13 2 13 9 20 9"></polyline>
+              </svg>
+              <div class="file-details">
+                <span class="file-name">{{ file.name }}</span>
+                <span class="file-size">{{ formatFileSize(file.size) }}</span>
+              </div>
+            </div>
+            <button class="remove-file-btn" (click)="removeFile(i)" title="Remove file">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeUploadModal()">Cancel</button>
+      <button class="btn-primary" (click)="uploadFiles()">Upload</button>
+    </div>
+  </div>
+</div>

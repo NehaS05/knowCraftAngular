@@ -1,0 +1,95 @@
+<div class="settings-container">
+  <div class="settings-header">
+    <h1>Settings</h1>
+    <p class="subtitle">Manage your account and application preferences</p>
+  </div>
+
+  <div class="settings-grid">
+    <!-- Profile Settings Card -->
+    <div class="settings-card">
+      <h2>Profile Settings</h2>
+      <form [formGroup]="profileForm" (ngSubmit)="saveProfileChanges()">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input 
+            type="text" 
+            id="username" 
+            formControlName="username"
+            placeholder="Enter username">
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            formControlName="email"
+            placeholder="Enter email">
+        </div>
+
+        <button type="submit" class="save-btn" [disabled]="profileForm.invalid">
+          Save Changes
+        </button>
+      </form>
+    </div>
+
+    <!-- Preferences Card -->
+    <div class="settings-card">
+      <h2>Preferences</h2>
+      
+      <div class="preference-item">
+        <div class="preference-label">
+          <span>Email Notifications</span>
+        </div>
+        <label class="toggle-switch">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="emailNotifications"
+            (change)="toggleEmailNotifications()">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="preference-item">
+        <div class="preference-label">
+          <span>Dark Mode</span>
+        </div>
+        <label class="toggle-switch">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="darkMode"
+            (change)="toggleDarkMode()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Security Card -->
+    <div class="settings-card">
+      <h2>Security</h2>
+      <form [formGroup]="securityForm" (ngSubmit)="updatePassword()">
+        <div class="form-group">
+          <label for="currentPassword">Current Password</label>
+          <input 
+            type="password" 
+            id="currentPassword" 
+            formControlName="currentPassword"
+            placeholder="Enter current password">
+        </div>
+
+        <div class="form-group">
+          <label for="newPassword">New Password</label>
+          <input 
+            type="password" 
+            id="newPassword" 
+            formControlName="newPassword"
+            placeholder="Enter new password">
+        </div>
+
+        <button type="submit" class="update-btn" [disabled]="securityForm.invalid">
+          Update Password
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
