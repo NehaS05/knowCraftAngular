@@ -110,9 +110,10 @@
 }
 
 .nav-item.active {
-  background: var(--nav-active-bg);
-  border-left-color: #2563eb;
-  color: #2563eb;
+  /* background: var(--nav-active-bg); */
+  background: #dfe0e2;
+  border-left-color: #dfe0e2;
+  color: black;
 }
 
 .nav-icon {
