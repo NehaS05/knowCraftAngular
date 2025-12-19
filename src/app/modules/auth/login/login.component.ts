@@ -32,7 +32,7 @@ export class LoginComponent {
     if (this.loginForm.valid) {
       this.authService.login(this.loginForm.value).subscribe(success => {
         if (success) {
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/chat']);
         }
       });
     }
