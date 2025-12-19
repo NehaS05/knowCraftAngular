@@ -4,6 +4,8 @@ interface Message {
   content: string;
   isUser: boolean;
   timestamp: Date;
+  chatGptResponse?: string;
+  knowledgeBaseResponse?: string;
 }
 
 interface Conversation {
@@ -36,9 +38,11 @@ export class ChatComponent implements OnInit, AfterViewChecked {
           timestamp: new Date()
         },
         {
-          content: 'Our premium investment account offers diversified portfolio management, low-fee index funds, automated rebalancing, and dedicated financial advisor access. You\'ll also get priority customer support and exclusive market insights.',
+          content: '',
           isUser: false,
-          timestamp: new Date()
+          timestamp: new Date(),
+          chatGptResponse: 'Based on general financial knowledge, premium investment accounts typically offer diversified portfolio management, professional advisory services, and enhanced customer support. These accounts often include automated rebalancing and access to exclusive investment opportunities.',
+          knowledgeBaseResponse: 'According to our internal documentation, our premium investment account specifically offers: diversified portfolio management, low-fee index funds, automated rebalancing, dedicated financial advisor access, priority customer support, and exclusive market insights with quarterly performance reviews.'
         }
       ]
     },
@@ -54,9 +58,11 @@ export class ChatComponent implements OnInit, AfterViewChecked {
           timestamp: new Date()
         },
         {
-          content: 'Our compliance review fees are structured based on the complexity and scope of the review. Basic reviews start at $500, while comprehensive audits can range from $2,000 to $10,000 depending on your organization\'s size and requirements.',
+          content: '',
           isUser: false,
-          timestamp: new Date()
+          timestamp: new Date(),
+          chatGptResponse: 'Compliance review fees generally vary based on the scope and complexity of the audit. Industry standards typically range from a few hundred dollars for basic reviews to several thousand for comprehensive audits.',
+          knowledgeBaseResponse: 'Our compliance review fee structure: Basic reviews start at $500, Standard reviews range from $1,500-$3,000, Comprehensive audits range from $2,000-$10,000 depending on organization size. Additional fees may apply for expedited reviews or specialized compliance areas.'
         }
       ]
     },
@@ -72,9 +78,11 @@ export class ChatComponent implements OnInit, AfterViewChecked {
           timestamp: new Date()
         },
         {
-          content: 'Q4 2024 market analysis shows strong performance in technology and healthcare sectors. The S&P 500 has shown resilience with a 12% year-to-date gain. Key trends include AI adoption, renewable energy growth, and continued interest rate stabilization.',
+          content: '',
           isUser: false,
-          timestamp: new Date()
+          timestamp: new Date(),
+          chatGptResponse: 'Q4 2024 market trends show continued growth in technology sectors, particularly AI and cloud computing. Healthcare and renewable energy sectors are also showing strong performance. Interest rates appear to be stabilizing after recent adjustments.',
+          knowledgeBaseResponse: 'Our Q4 2024 internal market analysis: S&P 500 achieved 12% YTD gain, Technology sector up 18%, Healthcare sector up 14%. Key investment opportunities identified in AI adoption, renewable energy infrastructure, and emerging markets. Recommended portfolio allocation: 40% tech, 25% healthcare, 20% renewable energy, 15% diversified.'
         }
       ]
     }
@@ -163,9 +171,11 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       // Simulate AI response after a short delay
       setTimeout(() => {
         const aiMessage: Message = {
-          content: `I received your message: "${messageText}". This is a demo response. In a real application, this would be processed by an AI service.`,
+          content: '',
           isUser: false,
-          timestamp: new Date()
+          timestamp: new Date(),
+          chatGptResponse: `Based on general knowledge, I can provide information about "${messageText}". This is a ChatGPT-style response that draws from general training data and common knowledge patterns.`,
+          knowledgeBaseResponse: `According to our internal knowledge base regarding "${messageText}": This response is generated from our specific company documentation, policies, and proprietary information that provides more accurate and contextual answers.`
         };
         this.currentMessages.push(aiMessage);
         if (this.selectedConversation) {
