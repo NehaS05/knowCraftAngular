@@ -231,7 +231,7 @@
 .user-avatar {
   width: 32px;
   height: 32px;
-  background: #2563eb;
+  background: #e3e5e8;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -239,8 +239,9 @@
   font-size: 12px;
   font-weight: 600;
   margin-right: 12px;
-  color: white;
+  color: black;
   flex-shrink: 0;
+  border: 1px solid #c7c7c7;
 }
 
 .sidebar.collapsed .user-avatar {
