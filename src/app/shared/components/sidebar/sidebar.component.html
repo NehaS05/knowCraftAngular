@@ -1,10 +1,12 @@
 <div class="sidebar" [class.collapsed]="isCollapsed">
   <div class="sidebar-header">
     <div class="logo">
-      <div class="logo-icon">KC</div>
-      <span class="logo-text" *ngIf="!isCollapsed">KnowCraft AI</span>
+      <img src="assets/images/logo-Knowcraft-Analytics.png" alt="KnowCraft AI" class="logo-image">
+      <div class="logo-text-container" *ngIf="!isCollapsed">
+        <span class="logo-text">KnowCraft AI</span>
+        <div class="subtitle">Intelligent Audit Assistant</div>
+      </div>
     </div>
-    <div class="subtitle" *ngIf="!isCollapsed">Intelligent Audit Assistant</div>
   </div>
 
   <nav class="sidebar-nav">

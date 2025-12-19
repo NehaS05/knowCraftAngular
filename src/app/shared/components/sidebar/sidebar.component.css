@@ -18,7 +18,7 @@
 }
 
 .sidebar-header {
-  padding: 20px;
+  padding: 7.5px 17px;
   border-bottom: 1px solid var(--border-color);
   position: relative;
 }
@@ -26,26 +26,26 @@
 .logo {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
 }
 
-.logo-icon {
-  width: 32px;
-  height: 32px;
-  background: #2563eb;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 14px;
+.logo-image {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
   margin-right: 12px;
   flex-shrink: 0;
 }
 
-.sidebar.collapsed .logo-icon {
+.sidebar.collapsed .logo-image {
   margin-right: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.logo-text-container {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .logo-text {
@@ -54,6 +54,7 @@
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
+  margin-bottom: 2px;
 }
 
 .subtitle {
@@ -145,7 +146,7 @@
 }
 
 .sidebar-footer {
-  padding: 20px;
+  padding: 10px 20px;
   border-top: 1px solid var(--border-color);
   position: relative;
 }
