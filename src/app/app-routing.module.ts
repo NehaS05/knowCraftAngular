@@ -10,8 +10,8 @@ import { SettingsComponent } from './modules/settings/settings.component';
 import { AuthGuard } from './core/guards/auth.guard';
 
 const routes: Routes = [
-  { 
-    path: 'login', 
+  {
+    path: 'login',
     loadChildren: () => import('./modules/auth/auth.module').then(m => m.AuthModule)
   },
   {
@@ -20,10 +20,10 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
-      // { path: 'dashboard', component: DashboardComponent },
+      { path: 'dashboard', component: DashboardComponent },
       { path: 'chat', component: ChatComponent },
-      { 
-        path: 'users', 
+      {
+        path: 'users',
         loadChildren: () => import('./modules/user/user.module').then(m => m.UserModule)
       },
       { path: 'knowledge', component: KnowledgeComponent },

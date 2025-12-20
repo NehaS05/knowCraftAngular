@@ -16,9 +16,10 @@
           id="username" 
           formControlName="username"
           placeholder="Enter your username"
-          [class.error]="isFieldInvalid('username')">
+          [class.error]="isFieldInvalid('username')"
+          [disabled]="isLoading">
         <div class="error-message" *ngIf="isFieldInvalid('username')">
-          Username is required
+          {{ getFieldErrorMessage('username') }}
         </div>
       </div>
 
@@ -29,9 +30,10 @@
           id="password" 
           formControlName="password"
           placeholder="Enter your password"
-          [class.error]="isFieldInvalid('password')">
+          [class.error]="isFieldInvalid('password')"
+          [disabled]="isLoading">
         <div class="error-message" *ngIf="isFieldInvalid('password')">
-          Password is required
+          {{ getFieldErrorMessage('password') }}
         </div>
       </div>
 
@@ -43,6 +45,7 @@
               type="radio" 
               formControlName="accountType" 
               value="client"
+              [disabled]="isLoading"
               checked>
             <span class="radio-custom"></span>
             Client Account
@@ -51,15 +54,22 @@
             <input 
               type="radio" 
               formControlName="accountType" 
-              value="internal">
+              value="internal"
+              [disabled]="isLoading">
             <span class="radio-custom"></span>
             Internal Team
           </label>
         </div>
       </div>
 
-      <button type="submit" class="sign-in-btn" [disabled]="loginForm.invalid">
-        Sign In
+      <!-- General error message -->
+      <div class="error-message" *ngIf="errorMessage" style="text-align: center; margin-bottom: 1rem;">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="sign-in-btn" [disabled]="loginForm.invalid || isLoading">
+        <span *ngIf="isLoading">Signing In...</span>
+        <span *ngIf="!isLoading">Sign In</span>
       </button>
 
       <div class="footer-text">
