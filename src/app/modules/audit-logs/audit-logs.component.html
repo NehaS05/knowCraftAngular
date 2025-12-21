@@ -2,7 +2,7 @@
   <div class="audit-logs-header">
     <div>
       <h1>Audit Logs</h1>
-      <p class="subtitle">Complete audit trail of all queries and responses</p>
+      <p class="subtitle">Audit trail grouped by user and date showing request counts</p>
     </div>
     <button class="export-btn" (click)="exportLogs()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -29,13 +29,17 @@
   </div>
 
   <div class="logs-table-container">
-    <table class="logs-table">
+    <div *ngIf="isLoading" class="loading-overlay">
+      <app-loading></app-loading>
+    </div>
+    
+    <table class="logs-table" [class.loading]="isLoading">
       <thead>
         <tr>
-          <th>TIMESTAMP</th>
+          <th>DATE</th>
           <th>USER</th>
           <th>ROLE</th>
-          <th>NUMBER OF QUERIES</th>
+          <th>NUMBER OF REQUESTS</th>
         </tr>
       </thead>
       <tbody>
@@ -52,7 +56,7 @@
       </tbody>
     </table>
 
-    <div class="empty-state" *ngIf="filteredLogs.length === 0">
+    <div class="empty-state" *ngIf="filteredLogs.length === 0 && !isLoading">
       <p>No audit logs found matching your search.</p>
     </div>
   </div>

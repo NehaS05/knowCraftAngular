@@ -90,11 +90,31 @@
   border: 1px solid var(--border-color);
   border-radius: 12px;
   overflow: hidden;
+  position: relative;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
 }
 
 .logs-table {
   width: 100%;
   border-collapse: collapse;
+  transition: opacity 0.2s;
+}
+
+.logs-table.loading {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .logs-table thead {
