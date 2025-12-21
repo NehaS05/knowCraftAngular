@@ -12,6 +12,7 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
           <router-outlet></router-outlet>
         </div>
       </div>
+      <app-toast-container></app-toast-container>
     </div>
   `,
   styles: [`

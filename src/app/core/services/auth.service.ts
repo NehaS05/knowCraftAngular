@@ -34,6 +34,11 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -170,5 +175,24 @@ export class AuthService {
     
     console.error('Auth Error:', error);
     return throwError(() => new Error(errorMessage));
+  }
+
+  changePassword(request: ChangePasswordRequest): Observable<any> {
+    return this.http.post(`${this.API_URL}/auth/change-password`, request)
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          let errorMessage = 'Failed to change password';
+          
+          if (error.error?.message) {
+            errorMessage = error.error.message;
+          } else if (error.status === 401) {
+            errorMessage = 'Current password is incorrect or you are not authenticated';
+          } else if (error.status === 400) {
+            errorMessage = 'Invalid password format or request data';
+          }
+          
+          return throwError(() => new Error(errorMessage));
+        })
+      );
   }
 }

@@ -4,32 +4,37 @@
     <p class="subtitle">Manage your account and application preferences</p>
   </div>
 
+  <!-- Use shared loading component -->
+  <app-loading></app-loading>
+
   <div class="settings-grid">
     <!-- Profile Settings Card -->
     <div class="settings-card">
       <h2>Profile Settings</h2>
-      <form [formGroup]="profileForm" (ngSubmit)="saveProfileChanges()">
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input 
-            type="text" 
-            id="username" 
-            formControlName="username"
-            placeholder="Enter username">
-        </div>
+      <form [formGroup]="profileForm">
+        <div class="profile-info">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input 
+              type="text" 
+              id="username" 
+              formControlName="username"
+              placeholder="Loading..."
+              readonly>
+            <small class="field-note">Username cannot be modified</small>
+          </div>
 
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input 
-            type="email" 
-            id="email" 
-            formControlName="email"
-            placeholder="Enter email">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input 
+              type="email" 
+              id="email" 
+              formControlName="email"
+              placeholder="Loading..."
+              readonly>
+            <small class="field-note">Email cannot be modified</small>
+          </div>
         </div>
-
-        <button type="submit" class="save-btn" [disabled]="profileForm.invalid">
-          Save Changes
-        </button>
       </form>
     </div>
 
@@ -74,7 +79,12 @@
             type="password" 
             id="currentPassword" 
             formControlName="currentPassword"
-            placeholder="Enter current password">
+            placeholder="Enter current password"
+            [disabled]="isLoading">
+          <div *ngIf="securityForm.get('currentPassword')?.invalid && securityForm.get('currentPassword')?.touched" 
+               class="error-message">
+            Current password is required
+          </div>
         </div>
 
         <div class="form-group">
@@ -83,11 +93,21 @@
             type="password" 
             id="newPassword" 
             formControlName="newPassword"
-            placeholder="Enter new password">
+            placeholder="Enter new password (min 6 characters)"
+            [disabled]="isLoading">
+          <div *ngIf="securityForm.get('newPassword')?.invalid && securityForm.get('newPassword')?.touched" 
+               class="error-message">
+            <span *ngIf="securityForm.get('newPassword')?.errors?.['required']">New password is required</span>
+            <span *ngIf="securityForm.get('newPassword')?.errors?.['minlength']">Password must be at least 6 characters</span>
+          </div>
         </div>
 
-        <button type="submit" class="update-btn" [disabled]="securityForm.invalid">
-          Update Password
+        <button 
+          type="submit" 
+          class="update-btn" 
+          [disabled]="securityForm.invalid || isLoading">
+          <span *ngIf="isLoading" class="button-spinner"></span>
+          {{ isLoading ? 'Updating...' : 'Update Password' }}
         </button>
       </form>
     </div>
