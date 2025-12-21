@@ -15,6 +15,7 @@ import { AnalyticsComponent } from './modules/analytics/analytics.component';
 import { AuditLogsComponent } from './modules/audit-logs/audit-logs.component';
 import { SettingsComponent } from './modules/settings/settings.component';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { SharedModule } from './shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
-    AppRoutingModule
+    AppRoutingModule,
+    SharedModule
   ],
   providers: [
     {

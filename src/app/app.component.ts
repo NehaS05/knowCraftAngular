@@ -4,6 +4,8 @@ import { Component } from '@angular/core';
   selector: 'app-root',
   template: `
     <router-outlet></router-outlet>
+    <app-toast-container></app-toast-container>
+    <app-loading></app-loading>
   `,
   styles: []
 })

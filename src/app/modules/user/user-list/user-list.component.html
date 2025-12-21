@@ -16,7 +16,10 @@
           <th>First Name</th>
           <th>Last Name</th>
           <th>Email</th>
-          <th>Mobile Number</th>
+          <th>Username</th>
+          <th>Phone Number</th>
+          <th>Role</th>
+          <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -25,14 +28,23 @@
           <td>{{ user.firstName }}</td>
           <td>{{ user.lastName }}</td>
           <td>{{ user.email }}</td>
-          <td>{{ user.mobileNumber }}</td>
+          <td>{{ user.username }}</td>
+          <td>{{ user.phoneNumber }}</td>
+          <td>{{ user.roleName }}</td>
+          <td>
+            <span class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+              {{ user.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
           <td class="actions-cell">
             <button class="edit-btn" (click)="editUser(user)">Edit</button>
+            <button *ngIf="user.isActive" class="deactivate-btn" (click)="deactivateUser(user.id!)">Deactivate</button>
+            <button *ngIf="!user.isActive" class="activate-btn" (click)="activateUser(user.id!)">Activate</button>
             <button class="delete-btn" (click)="deleteUser(user.id!)">Delete</button>
           </td>
         </tr>
         <tr *ngIf="users.length === 0">
-          <td colspan="5" class="no-users">No users added yet.</td>
+          <td colspan="8" class="no-users">No users added yet.</td>
         </tr>
       </tbody>
     </table>
