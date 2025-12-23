@@ -1,104 +1,77 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
-
-interface Message {
-  content: string;
-  isUser: boolean;
-  timestamp: Date;
-  chatGptResponse?: string;
-  knowledgeBaseResponse?: string;
-}
-
-interface Conversation {
-  id: number;
-  title: string;
-  preview: string;
-  time: string;
-  messages: Message[];
-}
+import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { ConversationService } from '../../core/services/conversation.service';
+import { LoadingService } from '../../core/services/loading.service';
+import { ToastService } from '../../core/services/toast.service';
+import { Conversation, Message, SendMessageDto } from '../../core/models/conversation.model';
 
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
-export class ChatComponent implements OnInit, AfterViewChecked {
+export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
+  
+  // UI State
   showUploadModal = false;
   selectedFiles: File[] = [];
-  conversations: Conversation[] = [
-    {
-      id: 1,
-      title: 'Investment Account Features',
-      preview: 'What are the key features of our...',
-      time: '2 hours ago',
-      messages: [
-        {
-          content: 'What are the key features of our premium investment account?',
-          isUser: true,
-          timestamp: new Date()
-        },
-        {
-          content: '',
-          isUser: false,
-          timestamp: new Date(),
-          chatGptResponse: 'Based on general financial knowledge, premium investment accounts typically offer diversified portfolio management, professional advisory services, and enhanced customer support. These accounts often include automated rebalancing and access to exclusive investment opportunities.',
-          knowledgeBaseResponse: 'According to our internal documentation, our premium investment account specifically offers: diversified portfolio management, low-fee index funds, automated rebalancing, dedicated financial advisor access, priority customer support, and exclusive market insights with quarterly performance reviews.'
-        }
-      ]
-    },
-    {
-      id: 2,
-      title: 'Compliance Review Fees',
-      preview: 'Can you explain the fee structure for internal...',
-      time: 'Yesterday',
-      messages: [
-        {
-          content: 'Can you explain the fee structure for internal compliance reviews?',
-          isUser: true,
-          timestamp: new Date()
-        },
-        {
-          content: '',
-          isUser: false,
-          timestamp: new Date(),
-          chatGptResponse: 'Compliance review fees generally vary based on the scope and complexity of the audit. Industry standards typically range from a few hundred dollars for basic reviews to several thousand for comprehensive audits.',
-          knowledgeBaseResponse: 'Our compliance review fee structure: Basic reviews start at $500, Standard reviews range from $1,500-$3,000, Comprehensive audits range from $2,000-$10,000 depending on organization size. Additional fees may apply for expedited reviews or specialized compliance areas.'
-        }
-      ]
-    },
-    {
-      id: 3,
-      title: 'Market Analysis Q4 2024',
-      preview: 'Provide a comprehensive marke...',
-      time: '3 days ago',
-      messages: [
-        {
-          content: 'Provide a comprehensive market analysis for Q4 2024',
-          isUser: true,
-          timestamp: new Date()
-        },
-        {
-          content: '',
-          isUser: false,
-          timestamp: new Date(),
-          chatGptResponse: 'Q4 2024 market trends show continued growth in technology sectors, particularly AI and cloud computing. Healthcare and renewable energy sectors are also showing strong performance. Interest rates appear to be stabilizing after recent adjustments.',
-          knowledgeBaseResponse: 'Our Q4 2024 internal market analysis: S&P 500 achieved 12% YTD gain, Technology sector up 18%, Healthcare sector up 14%. Key investment opportunities identified in AI adoption, renewable energy infrastructure, and emerging markets. Recommended portfolio allocation: 40% tech, 25% healthcare, 20% renewable energy, 15% diversified.'
-        }
-      ]
-    }
-  ];
-
-  selectedConversation: Conversation | null = null;
-  currentMessages: Message[] = [];
   newMessage: string = '';
   searchQuery: string = '';
   private shouldScrollToBottom = false;
+  private destroy$ = new Subject<void>();
+  
+  // Data from service
+  conversations: Conversation[] = [];
+  selectedConversation: Conversation | null = null;
+  currentMessages: Message[] = [];
+  isLoading = false;
+
+  constructor(
+    private conversationService: ConversationService,
+    private loadingService: LoadingService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit() {
-    // Select first conversation by default
-    if (this.conversations.length > 0) {
-      this.selectConversation(this.conversations[0]);
-    }
+    // Subscribe to service observables
+    this.conversationService.conversations$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(conversations => {
+        this.conversations = conversations;
+        // Select first conversation if none selected and conversations exist
+        if (!this.selectedConversation && conversations.length > 0) {
+          this.selectConversation(conversations[0]);
+        }
+      });
+
+    this.conversationService.currentMessages$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(messages => {
+        this.currentMessages = messages;
+        this.shouldScrollToBottom = true;
+      });
+
+    this.conversationService.selectedConversation$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(conversation => {
+        this.selectedConversation = conversation;
+      });
+
+    this.loadingService.loading$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(loading => {
+        this.isLoading = loading;
+      });
+
+    // Load conversations on init
+    this.loadConversations();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngAfterViewChecked() {
@@ -109,9 +82,18 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   }
 
   selectConversation(conversation: Conversation) {
-    this.selectedConversation = conversation;
-    this.currentMessages = [...conversation.messages];
-    this.shouldScrollToBottom = true;
+    this.conversationService.selectConversation(conversation);
+  }
+
+  private loadConversations() {
+    this.conversationService.loadConversations().subscribe({
+      next: () => {
+        // Conversations are automatically updated via the service observable
+      },
+      error: (error) => {
+        console.error('Failed to load conversations:', error);
+      }
+    });
   }
 
   private scrollToBottom(): void {
@@ -129,62 +111,42 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   }
 
   createNewConversation() {
-    const newConv: Conversation = {
-      id: this.conversations.length + 1,
-      title: 'New Conversation',
-      preview: 'Start a new conversation...',
-      time: 'Just now',
-      messages: [
-        {
-          content: 'Hello! How can I assist you today?',
-          isUser: false,
-          timestamp: new Date()
-        }
-      ]
-    };
-    this.conversations.unshift(newConv);
-    this.selectConversation(newConv);
+    // Clear selection to start a new conversation
+    this.conversationService.clearSelection();
+    this.newMessage = '';
   }
 
   sendMessage() {
-    if (this.newMessage.trim() && this.selectedConversation) {
-      // Add user message
-      const userMessage: Message = {
-        content: this.newMessage,
-        isUser: true,
-        timestamp: new Date()
-      };
-      this.currentMessages.push(userMessage);
-      this.selectedConversation.messages.push(userMessage);
-
-      // Update conversation preview
-      this.selectedConversation.preview = this.newMessage.substring(0, 40) + '...';
-      this.selectedConversation.time = 'Just now';
-
-      // Clear input
-      const messageText = this.newMessage;
-      this.newMessage = '';
-
-      // Scroll to bottom after user message
-      this.shouldScrollToBottom = true;
-
-      // Simulate AI response after a short delay
-      setTimeout(() => {
-        const aiMessage: Message = {
-          content: '',
-          isUser: false,
-          timestamp: new Date(),
-          chatGptResponse: `Based on general knowledge, I can provide information about "${messageText}". This is a ChatGPT-style response that draws from general training data and common knowledge patterns.`,
-          knowledgeBaseResponse: `According to our internal knowledge base regarding "${messageText}": This response is generated from our specific company documentation, policies, and proprietary information that provides more accurate and contextual answers.`
-        };
-        this.currentMessages.push(aiMessage);
-        if (this.selectedConversation) {
-          this.selectedConversation.messages.push(aiMessage);
-        }
-        // Scroll to bottom after AI response
-        this.shouldScrollToBottom = true;
-      }, 1000);
+    if (!this.newMessage.trim()) {
+      this.toastService.warning('Empty message', 'Please enter a message before sending');
+      return;
     }
+
+    if (this.newMessage.trim().length > 1000) {
+      this.toastService.warning('Message too long', 'Please keep your message under 1000 characters');
+      return;
+    }
+
+    const messageContent = this.newMessage.trim();
+    this.newMessage = ''; // Clear input immediately
+
+    const dto: SendMessageDto = {
+      conversationId: this.selectedConversation?.id || null,
+      content: messageContent
+    };
+
+    this.conversationService.sendMessage(dto).subscribe({
+      next: (response) => {
+        // Message and conversation updates are handled by the service
+        this.shouldScrollToBottom = true;
+      },
+      error: (error) => {
+        console.error('Failed to send message:', error);
+        // Restore message content on error
+        this.newMessage = messageContent;
+        this.toastService.error('Failed to send message', 'Please try again');
+      }
+    });
   }
 
   onKeyPress(event: KeyboardEvent) {
@@ -213,7 +175,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
         if (file.size <= 10 * 1024 * 1024) {
           this.selectedFiles.push(file);
         } else {
-          alert(`File ${file.name} exceeds 10MB limit`);
+          this.toastService.warning('File too large', `File ${file.name} exceeds 10MB limit`);
         }
       }
     }
@@ -225,27 +187,30 @@ export class ChatComponent implements OnInit, AfterViewChecked {
 
   uploadFiles() {
     if (this.selectedFiles.length === 0) {
-      alert('Please select at least one file');
+      this.toastService.warning('No files selected', 'Please select at least one file');
       return;
     }
 
-    // Simulate file upload
-    console.log('Uploading files:', this.selectedFiles);
+    // For now, just show the files as uploaded in the chat
+    // This can be enhanced later to integrate with the document system
+    const fileNames = this.selectedFiles.map(f => f.name).join(', ');
     
-    // Add a message indicating files were uploaded
     if (this.selectedConversation) {
-      const fileNames = this.selectedFiles.map(f => f.name).join(', ');
-      const uploadMessage: Message = {
-        content: `📎 Uploaded ${this.selectedFiles.length} file(s): ${fileNames}`,
-        isUser: true,
-        timestamp: new Date()
+      const dto: SendMessageDto = {
+        conversationId: this.selectedConversation.id,
+        content: `📎 Uploaded ${this.selectedFiles.length} file(s): ${fileNames}`
       };
-      this.currentMessages.push(uploadMessage);
-      this.selectedConversation.messages.push(uploadMessage);
-      this.shouldScrollToBottom = true;
+
+      this.conversationService.sendMessage(dto).subscribe({
+        next: () => {
+          this.toastService.success('Files uploaded', 'Files have been attached to the conversation');
+        },
+        error: (error) => {
+          console.error('Failed to upload files:', error);
+        }
+      });
     }
 
-    // Close modal and reset
     this.closeUploadModal();
   }
 
@@ -259,7 +224,8 @@ export class ChatComponent implements OnInit, AfterViewChecked {
 
   getTimeAgo(timestamp: Date): string {
     const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
+    const messageTime = new Date(timestamp);
+    const diff = now.getTime() - messageTime.getTime();
     const seconds = Math.floor(diff / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
@@ -279,7 +245,42 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     const query = this.searchQuery.toLowerCase();
     return this.conversations.filter(conv => 
       conv.title.toLowerCase().includes(query) ||
-      conv.preview.toLowerCase().includes(query)
+      (conv.preview && conv.preview.toLowerCase().includes(query))
     );
+  }
+
+  getConversationTime(conversation: Conversation): string {
+    const date = conversation.updatedAt || conversation.createdAt;
+    return this.getTimeAgo(date);
+  }
+
+  getConversationPreview(conversation: Conversation): string {
+    return conversation.preview || 'No messages yet...';
+  }
+
+  deleteConversation(event: Event, conversation: Conversation): void {
+    event.stopPropagation(); // Prevent conversation selection
+    
+    if (confirm(`Are you sure you want to delete "${conversation.title}"?`)) {
+      this.conversationService.deleteConversation(conversation.id).subscribe({
+        next: () => {
+          // Deletion is handled by the service
+        },
+        error: (error) => {
+          console.error('Failed to delete conversation:', error);
+        }
+      });
+    }
+  }
+
+  refreshConversations(): void {
+    this.conversationService.refreshConversations().subscribe({
+      next: () => {
+        this.toastService.success('Conversations refreshed');
+      },
+      error: (error) => {
+        console.error('Failed to refresh conversations:', error);
+      }
+    });
   }
 }
