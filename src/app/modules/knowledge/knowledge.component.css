@@ -718,3 +718,63 @@ select.form-control {
   background: #fee2e2;
   color: #dc2626;
 }
+
+/* Confirm Modal - scoped to Knowledge page */
+.confirm-body {
+  padding: 12px 8px;
+  max-width: 460px;
+  color: var(--text-primary);
+}
+
+.confirm-body p {
+  margin: 0 0 18px 0;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn-secondary {
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-secondary:hover {
+  background: var(--button-hover-bg);
+}
+
+.btn-danger {
+  padding: 8px 14px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+/* Responsive: stack actions on small screens */
+@media (max-width: 480px) {
+  .modal-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+}

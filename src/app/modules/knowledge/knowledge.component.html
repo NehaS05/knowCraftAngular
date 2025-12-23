@@ -206,7 +206,7 @@
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                   </button>
-                  <button class="table-action-btn delete" title="Delete" (click)="deleteSource(source.id)">
+                  <button class="table-action-btn delete" title="Delete" (click)="confirmDelete(source)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="3 6 5 6 21 6"></polyline>
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -261,7 +261,7 @@
       </div>
 
       <!-- File Upload (shown only when File Upload is selected) -->
-      <div class="form-group" *ngIf="selectedSourceType === 'file'">
+      <div class="form-group" *ngIf="selectedSourceType === 'file' && !isEditMode">
         <label>File Upload</label>
         <div class="file-input-wrapper">
           <input 
@@ -319,14 +319,32 @@
     </div>
 
     <div class="modal-footer">
-      <button class="btn-primary" (click)="addSource()">
+      <div class="upload-progress" *ngIf="uploading">
+        <div class="progress-bar">
+          <div class="progress" [style.width.%]="uploadProgress"></div>
+        </div>
+        <span class="progress-label">{{ uploadProgress }}%</span>
+      </div>
+
+      <button class="btn-primary" (click)="addSource()" [disabled]="uploading">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="17 8 12 3 7 8"></polyline>
           <line x1="12" y1="3" x2="12" y2="15"></line>
         </svg>
-        {{ isEditMode ? 'Update Source' : 'Add Source' }}
+        {{ isEditMode ? (uploading ? 'Updating...' : 'Update Source') : (uploading ? 'Uploading...' : 'Add Source') }}
       </button>
     </div>
   </div>
 </div>
+
+<!-- Confirm Delete Modal -->
+<app-modal [isOpen]="showConfirmModal" title="Confirm delete" (closeModal)="closeConfirmModal()">
+  <div class="confirm-body">
+    <p>{{ confirmMessage }}</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeConfirmModal()">Cancel</button>
+      <button class="btn-danger" (click)="onConfirmDelete()">Delete</button>
+    </div>
+  </div>
+</app-modal>

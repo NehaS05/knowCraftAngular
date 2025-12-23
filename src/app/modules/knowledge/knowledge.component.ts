@@ -1,4 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { HttpEventType } from '@angular/common/http';
+import { DocumentService } from '../../core/services/document.service';
+import { ToastService } from '../../core/services/toast.service';
+import { LoadingService } from '../../core/services/loading.service';
+import { DocumentDto } from '../../core/models/document.model';
 
 interface SourceType {
   value: string;
@@ -15,6 +20,7 @@ interface KnowledgeSource {
   url?: string;
   status: 'Processing' | 'Ready' | 'Failed';
   addedDate: Date;
+  isActive?: boolean;
 }
 
 @Component({
@@ -22,7 +28,7 @@ interface KnowledgeSource {
   templateUrl: './knowledge.component.html',
   styleUrls: ['./knowledge.component.css']
 })
-export class KnowledgeComponent {
+export class KnowledgeComponent implements OnInit {
   activeTab: 'add' | 'view' = 'add';
   showModal = false;
   isEditMode = false;
@@ -34,8 +40,48 @@ export class KnowledgeComponent {
   textContent = '';
   qaContent = '';
   category = '';
+  isActive = true;
   knowledgeSources: KnowledgeSource[] = [];
   nextId = 1;
+
+  // Upload state
+  uploading = false;
+  uploadProgress = 0;
+
+  constructor(
+    private documentService: DocumentService,
+    private toast: ToastService,
+    private loading: LoadingService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadDocuments();
+  }
+
+  private loadDocuments(): void {
+    this.loading.show();
+    this.documentService.getDocuments().subscribe({
+      next: (docs: DocumentDto[]) => {
+        this.knowledgeSources = docs.map(doc => ({
+          id: doc.id,
+          name: doc.sourceName,
+          type: doc.sourceType,
+          category: doc.category || undefined,
+          fileName: doc.sourceType ? `${doc.sourceName}${doc.sourceType}` : undefined,
+          url: undefined,
+          status: (doc.status as 'Processing' | 'Ready' | 'Failed') || 'Processing',
+          addedDate: doc.uploadedAt ? new Date(doc.uploadedAt) : new Date(),
+          isActive: doc.isActive
+        }));
+        this.loading.hide();
+      },
+      error: (err) => {
+        console.error('Failed to load documents', err);
+        this.toast.error('Failed to load documents', err?.message || 'See console for details');
+        this.loading.hide();
+      }
+    });
+  }
 
   sourceTypes: SourceType[] = [
     { value: 'file', label: 'File Upload', icon: 'file' },
@@ -78,6 +124,7 @@ export class KnowledgeComponent {
     this.textContent = '';
     this.qaContent = '';
     this.category = '';
+    this.isActive = true;
   }
 
   closeModal() {
@@ -96,6 +143,7 @@ export class KnowledgeComponent {
     this.selectedFile = null;
     this.textContent = '';
     this.qaContent = '';
+    this.isActive = source.isActive ?? true;
     this.showModal = true;
   }
 
@@ -133,38 +181,94 @@ export class KnowledgeComponent {
     }
 
     if (this.isEditMode && this.editingSourceId !== null) {
-      // Update existing source
-      const sourceIndex = this.knowledgeSources.findIndex(s => s.id === this.editingSourceId);
-      if (sourceIndex !== -1) {
-        this.knowledgeSources[sourceIndex] = {
-          ...this.knowledgeSources[sourceIndex],
-          name: this.sourceName,
-          type: this.selectedSourceType,
-          category: this.category || undefined,
-          fileName: this.selectedFile?.name || this.knowledgeSources[sourceIndex].fileName,
-          url: this.websiteUrl || undefined
-        };
-        alert('Source updated successfully!');
-      }
-    } else {
-      // Add new source
-      const newSource: KnowledgeSource = {
-        id: this.nextId++,
-        name: this.sourceName,
-        type: this.selectedSourceType,
-        category: this.category || undefined,
-        fileName: this.selectedFile?.name,
-        url: this.websiteUrl || undefined,
-        status: 'Processing',
-        addedDate: new Date()
-      };
-
-      this.knowledgeSources.push(newSource);
-      alert('Source added successfully!');
-      
-      // Switch to view tab to see the added source
-      this.activeTab = 'view';
+      const id = this.editingSourceId;
+      this.loading.show();
+      this.documentService.updateDocument(id, this.sourceName, this.category, this.isActive).subscribe({
+        next: (updated: DocumentDto) => {
+          const idx = this.knowledgeSources.findIndex(s => s.id === id);
+          if (idx !== -1) {
+            this.knowledgeSources[idx] = {
+              ...this.knowledgeSources[idx],
+              name: updated.sourceName,
+              type: updated.sourceType || this.selectedSourceType,
+              category: updated.category || undefined,
+              isActive: true//updated.isActive
+            };
+          }
+          this.toast.success('Source updated', 'The source was updated successfully');
+          this.loading.hide();
+          this.closeModal();
+        },
+        error: (err) => {
+          console.error('Failed to update source', err);
+          this.toast.error('Failed to update source', err?.message || 'See console for details');
+          this.loading.hide();
+        }
+      });
+      return;
     }
+
+    // If file source, perform multipart upload using expected backend fields
+    if (this.selectedSourceType === 'file' && this.selectedFile) {
+      this.uploading = true;
+      this.uploadProgress = 0;
+      this.loading.show();
+
+      this.documentService.uploadDocument(this.selectedFile, this.sourceName, this.category, this.selectedSourceType).subscribe({
+        next: (event: any) => {
+          if (event.type === HttpEventType.UploadProgress && event.total) {
+            this.uploadProgress = Math.round((100 * event.loaded) / event.total);
+          } else if (event.type === HttpEventType.Response) {
+            const resp = event.body;
+            const newSource: KnowledgeSource = {
+              id: this.nextId++,
+              name: this.sourceName,
+              type: 'file',
+              category: this.category || undefined,
+              fileName: this.selectedFile ? this.selectedFile.name : undefined,
+              url: undefined,
+              status: 'Ready',
+              addedDate: new Date()
+            };
+
+            this.knowledgeSources.push(newSource);
+            this.toast.success('Upload successful', `${this.selectedFile?.name} uploaded`);
+            this.activeTab = 'view';
+
+            this.uploading = false;
+            this.uploadProgress = 0;
+            this.loading.hide();
+            this.closeModal();
+          }
+        },
+        error: (err) => {
+          console.error('Upload failed', err);
+          this.toast.error('Upload failed', err?.message || 'An error occurred while uploading');
+          this.uploading = false;
+          this.uploadProgress = 0;
+          this.loading.hide();
+        }
+      });
+
+      console.log('Uploading file with fields:', { File: this.selectedFile?.name, SourceName: this.sourceName, Category: this.category });
+      return;
+    }
+
+    // Other source types (website, text, qa): add in-memory source as before
+    const newSource: KnowledgeSource = {
+      id: this.nextId++,
+      name: this.sourceName,
+      type: this.selectedSourceType,
+      category: this.category || undefined,
+      fileName: this.selectedFile?.name,
+      url: this.websiteUrl || undefined,
+      status: 'Processing',
+      addedDate: new Date()
+    };
+
+    this.knowledgeSources.push(newSource);
+    this.toast.success('Source added', 'Source added successfully');
+    this.activeTab = 'view';
 
     console.log('Saving source:', {
       name: this.sourceName,
@@ -189,10 +293,43 @@ export class KnowledgeComponent {
     return classMap[type] || 'icon-blue';
   }
 
-  deleteSource(id: number) {
-    if (confirm('Are you sure you want to delete this source?')) {
-      this.knowledgeSources = this.knowledgeSources.filter(s => s.id !== id);
+  // Open a confirmation modal before deleting
+  confirmTargetId: number | null = null;
+  showConfirmModal = false;
+  confirmMessage = '';
+
+  confirmDelete(source: KnowledgeSource) {
+    this.confirmTargetId = source.id;
+    this.confirmMessage = `Are you sure you want to delete "${source.name}"?`;
+    this.showConfirmModal = true;
+  }
+
+  closeConfirmModal() {
+    this.showConfirmModal = false;
+    this.confirmTargetId = null;
+    this.confirmMessage = '';
+  }
+
+  onConfirmDelete() {
+    if (this.confirmTargetId === null) {
+      return;
     }
+
+    const id = this.confirmTargetId;
+    this.loading.show();
+    this.documentService.deleteDocument(id).subscribe({
+      next: () => {
+        this.knowledgeSources = this.knowledgeSources.filter(s => s.id !== id);
+        this.toast.success('Source deleted', 'The source was deleted successfully');
+        this.closeConfirmModal();
+        this.loading.hide();
+      },
+      error: (err) => {
+        console.error('Failed to delete source', err);
+        this.toast.error('Failed to delete source', err?.message || 'See console for details');
+        this.loading.hide();
+      }
+    });
   }
 
   getSourceTypeLabel(type: string): string {
