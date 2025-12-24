@@ -20,6 +20,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   newMessage: string = '';
   searchQuery: string = '';
   showScrollToBottom = false;
+  isAiTyping = false;
   private shouldScrollToBottom = false;
   private destroy$ = new Subject<void>();
   
@@ -189,6 +190,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     const messageContent = this.newMessage.trim();
     this.newMessage = ''; // Clear input immediately
+    this.isAiTyping = true; // Show typing indicator
 
     const dto: SendMessageDto = {
       conversationId: this.selectedConversation?.id || null,
@@ -199,11 +201,13 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       next: (response) => {
         // Message and conversation updates are handled by the service
         this.shouldScrollToBottom = true;
+        this.isAiTyping = false; // Hide typing indicator
       },
       error: (error) => {
         console.error('Failed to send message:', error);
         // Restore message content on error
         this.newMessage = messageContent;
+        this.isAiTyping = false; // Hide typing indicator
         this.toastService.error('Failed to send message', 'Please try again');
       }
     });

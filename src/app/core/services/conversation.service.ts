@@ -88,6 +88,22 @@ export class ConversationService {
   sendMessage(dto: SendMessageDto): Observable<ChatResponseDto> {
     this.loadingService.show();
     
+    // Add user message immediately for better UX
+    if (dto.conversationId) {
+      const tempUserMessage: Message = {
+        id: Date.now(), // Temporary ID
+        conversationId: dto.conversationId,
+        content: dto.content,
+        type: 'User',
+        createdAt: new Date(),
+        isUser: true,
+        timestamp: new Date()
+      };
+      
+      const currentMessages = this.currentMessagesSubject.value;
+      this.currentMessagesSubject.next([...currentMessages, tempUserMessage]);
+    }
+    
     return this.http.post<ChatResponseDto>(`${this.API_URL}/message`, dto).pipe(
       tap(response => {
         // Transform messages
@@ -98,7 +114,13 @@ export class ConversationService {
         const currentConversation = this.selectedConversationSubject.value;
         if (currentConversation?.id === response.userMessage.conversationId || !dto.conversationId) {
           const currentMessages = this.currentMessagesSubject.value;
-          const updatedMessages = [...currentMessages, transformedUserMessage, transformedAiMessage];
+          
+          // Remove temporary message if it exists and replace with real messages
+          const filteredMessages = dto.conversationId 
+            ? currentMessages.filter(msg => msg.id !== Date.now())
+            : currentMessages;
+          
+          const updatedMessages = [...filteredMessages, transformedUserMessage, transformedAiMessage];
           this.currentMessagesSubject.next(updatedMessages);
           
           // Create or update conversation object
@@ -115,7 +137,15 @@ export class ConversationService {
           this.selectedConversationSubject.next(conversation);
         }
       }),
-      catchError(error => this.handleError(error, 'Failed to send message')),
+      catchError(error => {
+        // Remove temporary message on error
+        if (dto.conversationId) {
+          const currentMessages = this.currentMessagesSubject.value;
+          const filteredMessages = currentMessages.filter(msg => msg.id !== Date.now());
+          this.currentMessagesSubject.next(filteredMessages);
+        }
+        return this.handleError(error, 'Failed to send message');
+      }),
       finalize(() => this.loadingService.hide())
     );
   }
