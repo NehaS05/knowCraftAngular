@@ -73,103 +73,179 @@
     </div>
 
     <div class="messages-container" #messagesContainer>
-      <!-- Loading messages -->
+      <!-- Loading messages with skeleton -->
       <div *ngIf="isLoading && currentMessages.length === 0" class="loading-messages">
-        <div class="loading-spinner"></div>
-        <p>Loading messages...</p>
-      </div>
-      
-      <!-- Empty messages state -->
-      <div *ngIf="!isLoading && currentMessages.length === 0 && !selectedConversation" class="empty-messages">
-        <div class="empty-state">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-          </svg>
-          <h3>Start a conversation</h3>
-          <p>Select a conversation from the sidebar or create a new one to get started.</p>
+        <div class="message-skeleton-container">
+          <div class="message-skeleton ai-skeleton" *ngFor="let item of [1,2]">
+            <div class="skeleton-avatar"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-line long"></div>
+              <div class="skeleton-line medium"></div>
+              <div class="skeleton-line short"></div>
+            </div>
+          </div>
+          <div class="message-skeleton user-skeleton">
+            <div class="skeleton-content">
+              <div class="skeleton-line medium"></div>
+              <div class="skeleton-line short"></div>
+            </div>
+            <div class="skeleton-avatar"></div>
+          </div>
+        </div>
+        <div class="loading-text">
+          <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <p>Loading conversation...</p>
         </div>
       </div>
       
-      <div class="messages" *ngIf="currentMessages.length > 0">
-        <ng-container *ngFor="let message of currentMessages">
-          <!-- AI Message -->
-          <div 
-            *ngIf="!message.isUser"
-            class="message ai-message">
-            <div class="message-avatar">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot w-5 h-5"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>
+      <!-- Enhanced empty messages state -->
+      <div *ngIf="!isLoading && currentMessages.length === 0 && !selectedConversation" class="empty-messages">
+        <div class="empty-state">
+          <div class="empty-illustration">
+            <div class="chat-bubble-1">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
             </div>
-            <div class="message-wrapper">
-              <!-- Dual Response Layout -->
-              <div class="dual-response-container" *ngIf="message.chatGptResponse || message.knowledgeBaseResponse">
-                <!-- ChatGPT Response -->
-                <div class="response-column">
-                  <div class="response-header">
-                    <div class="response-icon chatgpt-icon">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                        <path d="M2 17l10 5 10-5"></path>
-                        <path d="M2 12l10 5 10-5"></path>
-                      </svg>
-                    </div>
-                    <span class="response-title">ChatGPT Response</span>
-                  </div>
-                  <div class="message-content chatgpt-response">
-                    {{ message.chatGptResponse || 'No ChatGPT response available' }}
-                  </div>
-                </div>
-
-                <!-- Knowledge Base Response -->
-                <div class="response-column">
-                  <div class="response-header">
-                    <div class="response-icon kb-icon">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-                      </svg>
-                    </div>
-                    <span class="response-title">Knowledge Base Response</span>
-                  </div>
-                  <div class="message-content kb-response">
-                    {{ message.knowledgeBaseResponse || 'No Knowledge Base response available' }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Legacy content for backward compatibility -->
-              <div class="message-content" *ngIf="message.content && !message.chatGptResponse && !message.knowledgeBaseResponse">
-                {{ message.content }}
-              </div>
-
-              <div class="message-meta">
-                <span class="message-time">{{ getTimeAgo(message.createdAt) }}</span>
-              </div>
+            <div class="chat-bubble-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
             </div>
+            <div class="sparkle sparkle-1">✨</div>
+            <div class="sparkle sparkle-2">💬</div>
           </div>
-
-          <!-- User Message -->
+          <h3>Ready to chat?</h3>
+          <p>Select a conversation from the sidebar or start a new one to begin your AI-powered conversation.</p>
+          <div class="empty-actions">
+            <button class="start-chat-btn" (click)="createNewConversation()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14m-7-7h14"></path>
+              </svg>
+              Start New Chat
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Messages with enhanced animations -->
+      <div class="messages" *ngIf="currentMessages.length > 0">
+        <div class="messages-scroll-area">
+        <ng-container *ngFor="let message of currentMessages; let i = index; trackBy: trackByMessageId">
+          <!-- User Message on the right -->
           <div 
-            *ngIf="message.isUser"
-            class="message user-message">
+            *ngIf="message.type === 'User'"
+            class="message user-message"
+            [class.message-enter]="true"
+            [style.animation-delay]="i * 100 + 'ms'">
             <div class="message-wrapper">
-              <div class="message-content">
+              <div class="user-content">
                 {{ message.content }}
               </div>
               <div class="message-meta">
+                <div class="message-status">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
                 <span class="message-time">{{ getTimeAgo(message.createdAt) }}</span>
-                <!-- <span class="message-badge">INTERNAL</span> -->
               </div>
             </div>
-            <div class="message-avatar">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="message-avatar user-avatar">
+              <div class="avatar-glow"></div>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
             </div>
           </div>
+
+          <!-- AI Response on the left -->
+          <div 
+            *ngIf="message.type === 'AI'"
+            class="message ai-message"
+            [class.message-enter]="true"
+            [style.animation-delay]="i * 100 + 'ms'">
+            <div class="message-avatar ai-avatar">
+              <div class="avatar-glow"></div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 8V4H8"></path>
+                <rect width="16" height="12" x="4" y="8" rx="2"></rect>
+                <path d="M2 14h2"></path>
+                <path d="M20 14h2"></path>
+                <path d="M15 13v2"></path>
+                <path d="M9 13v2"></path>
+              </svg>
+            </div>
+            <div class="message-wrapper">
+              <!-- Simplified Dual Response Layout -->
+              <div class="dual-response-container" *ngIf="message.ragAnswer || message.azureAiAnswer">
+                <!-- RAG Response -->
+                <div class="response-section chatgpt-section">
+                  <div class="response-header">
+                    <div class="response-icon chatgpt-icon">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                      </svg>
+                    </div>
+                    <span class="response-title">Knowledge Base</span>
+                  </div>
+                  <div class="response-content">
+                    {{ message.ragAnswer || 'No Knowledge Base response available' }}
+                  </div>
+                </div>
+
+                <!-- Azure AI Response -->
+                <div class="response-section kb-section">
+                  <div class="response-header">
+                    <div class="response-icon kb-icon">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6"></path>
+                        <path d="M1 12h6m6 0h6"></path>
+                      </svg>
+                    </div>
+                    <span class="response-title">Azure AI</span>
+                  </div>
+                  <div class="response-content">
+                    {{ message.azureAiAnswer || 'No Azure AI response available' }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Legacy content for backward compatibility -->
+              <div class="single-response" *ngIf="message.content && !message.ragAnswer && !message.azureAiAnswer">
+                {{ message.content }}
+              </div>
+
+              <div class="message-meta">
+                <span class="message-time">{{ getTimeAgo(message.createdAt) }}</span>
+                <div class="message-actions">
+                  <button class="action-btn copy-btn" title="Copy message" (click)="copyMessage(message)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </ng-container>
-      </div>
+        
+        <!-- Scroll to bottom indicator -->
+        <div class="scroll-to-bottom" *ngIf="showScrollToBottom" (click)="scrollToBottomManual()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="7 13 12 18 17 13"></polyline>
+            <polyline points="7 6 12 11 17 6"></polyline>
+          </svg>
+        </div>
+        </div>
     </div>
 
     <div class="chat-input-container">

@@ -19,6 +19,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   selectedFiles: File[] = [];
   newMessage: string = '';
   searchQuery: string = '';
+  showScrollToBottom = false;
   private shouldScrollToBottom = false;
   private destroy$ = new Subject<void>();
   
@@ -67,6 +68,20 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     // Load conversations on init
     this.loadConversations();
+    
+    // Add scroll event listener
+    this.addScrollListener();
+  }
+
+  private addScrollListener(): void {
+    // Add scroll event listener after view init
+    setTimeout(() => {
+      if (this.messagesContainer) {
+        this.messagesContainer.nativeElement.addEventListener('scroll', () => {
+          this.checkScrollPosition();
+        });
+      }
+    }, 100);
   }
 
   ngOnDestroy() {
@@ -79,6 +94,9 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       this.scrollToBottom();
       this.shouldScrollToBottom = false;
     }
+    
+    // Check if user should see scroll to bottom button
+    this.checkScrollPosition();
   }
 
   selectConversation(conversation: Conversation) {
@@ -99,11 +117,53 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   private scrollToBottom(): void {
     try {
       if (this.messagesContainer) {
-        this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
+        const element = this.messagesContainer.nativeElement;
+        element.scrollTop = element.scrollHeight;
+        this.showScrollToBottom = false;
       }
     } catch (err) {
       console.error('Error scrolling to bottom:', err);
     }
+  }
+
+  private checkScrollPosition(): void {
+    try {
+      if (this.messagesContainer) {
+        const element = this.messagesContainer.nativeElement;
+        const threshold = 100; // Show button when 100px from bottom
+        const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < threshold;
+        this.showScrollToBottom = !isNearBottom && this.currentMessages.length > 3;
+      }
+    } catch (err) {
+      console.error('Error checking scroll position:', err);
+    }
+  }
+
+  scrollToBottomManual(): void {
+    this.scrollToBottom();
+  }
+
+  // Track by function for better performance with *ngFor
+  trackByMessageId(index: number, message: Message): any {
+    return message.id || index;
+  }
+
+  // Message action methods
+  copyMessage(message: Message): void {
+    let textToCopy = '';
+    
+    if (message.ragAnswer || message.azureAiAnswer) {
+      textToCopy = `Knowledge Base: ${message.ragAnswer || 'N/A'}\n\nAzure AI: ${message.azureAiAnswer || 'N/A'}`;
+    } else {
+      textToCopy = message.content || '';
+    }
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      this.toastService.success('Copied to clipboard');
+    }).catch(err => {
+      console.error('Failed to copy message:', err);
+      this.toastService.error('Failed to copy message');
+    });
   }
 
   isConversationActive(conversation: Conversation): boolean {
