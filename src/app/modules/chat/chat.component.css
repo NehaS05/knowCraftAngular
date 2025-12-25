@@ -1,16 +1,23 @@
 .chat-container {
   display: flex;
+  flex-wrap: nowrap;
   height: calc(100vh - 60px);
   background: var(--main-bg);
+  overflow: hidden; /* ensure side-by-side layout */
 }
 
 /* Conversations Sidebar */
 .conversations-sidebar {
   width: 300px;
+  min-width: 220px;
+  max-width: 340px;
+  flex: 0 0 300px; /* fixed width, prevents wrapping */
   background: var(--sidebar-bg);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  overflow-y: auto; /* allow scrolling of long conversation lists */
 }
 
 .conversations-header {
@@ -279,17 +286,17 @@
   border: none;
 }
 
-/* Simplified Dual Response Layout */
+/* Simplified Dual Response Layout (side-by-side on wide screens) */
 .dual-response-container {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  gap: 12px;
   width: 100%;
-  min-width: 300px;
-  max-width: 600px;
+  min-width: 520px; /* ensure both panels have room */
+  max-width: 100%;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 16px 16px 16px 6px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
@@ -299,20 +306,56 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
+/* Each section should share available space and scroll independently */
 .response-section {
-  padding: 0;
+  flex: 1 1 0;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 220px; /* minimum height before enabling internal scroll */
+  max-height: 60vh; /* cap height relative to viewport */
 }
 
+/* Divider between the two panels when side-by-side */
 .response-section:not(:last-child) {
-  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
 }
 
+/* Colored accent bars (kept as left accent inside each panel) */
 .chatgpt-section {
-  border-left: 3px solid #10a37f;
+  padding-left: 12px;
+  border-left: 4px solid #10a37f;
 }
 
 .kb-section {
-  border-left: 3px solid #2563eb;
+  padding-left: 12px;
+  border-left: 4px solid #2563eb;
+}
+
+/* On smaller screens, stack vertically as before */
+@media (max-width: 768px) {
+  .dual-response-container {
+    flex-direction: column;
+    min-width: unset;
+  }
+
+  .response-section:not(:last-child) {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .response-section {
+    min-width: unset;
+    /* uncap height on small screens so panels expand naturally */
+    max-height: none;
+    min-height: unset;
+  }
+
+  .response-content {
+    max-height: none;
+    overflow: visible;
+  }
 }
 
 /* Simplified Response Header */
@@ -360,6 +403,21 @@
   line-height: 1.5;
   color: var(--text-primary);
   background: var(--card-bg);
+  flex: 1 1 auto; /* allow content area to grow and scroll */
+  min-height: 0; /* enables proper flexbox scrolling */
+  overflow-y: auto; /* scroll when content exceeds max-height */
+}
+
+/* subtle scrollbar styling */
+.response-content::-webkit-scrollbar {
+  width: 10px;
+}
+.response-content::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.08);
+  border-radius: 8px;
+}
+.response-content::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* Enhanced Message Meta */
@@ -444,6 +502,23 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  /* Keep side-by-side layout even on smaller screens */
+  .chat-container {
+    flex-wrap: nowrap;
+  }
+
+  .conversations-sidebar {
+    flex: 0 0 220px;
+    width: 220px;
+    min-width: 180px;
+    max-width: 260px;
+  }
+
+  .chat-main {
+    min-width: calc(100% - 220px);
+    overflow-x: auto; /* allow horizontal scrolling if needed */
+  }
+
   .dual-response-container {
     min-width: unset;
   }
