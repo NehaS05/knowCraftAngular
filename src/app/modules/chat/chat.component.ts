@@ -4,6 +4,7 @@ import { takeUntil } from 'rxjs/operators';
 import { ConversationService } from '../../core/services/conversation.service';
 import { LoadingService } from '../../core/services/loading.service';
 import { ToastService } from '../../core/services/toast.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Conversation, Message, SendMessageDto } from '../../core/models/conversation.model';
 
 @Component({
@@ -33,7 +34,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   constructor(
     private conversationService: ConversationService,
     private loadingService: LoadingService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -42,10 +44,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(conversations => {
         this.conversations = conversations;
-        // Select first conversation if none selected and conversations exist
-        if (!this.selectedConversation && conversations.length > 0) {
-          this.selectConversation(conversations[0]);
-        }
+        // Don't automatically select first conversation - let user choose
       });
 
     this.conversationService.currentMessages$
@@ -346,5 +345,9 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         console.error('Failed to refresh conversations:', error);
       }
     });
+  }
+
+  isCurrentUserAdmin(): boolean {
+    return this.authService.isAdmin();
   }
 }

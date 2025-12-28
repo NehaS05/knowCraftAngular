@@ -131,6 +131,20 @@
   color: var(--text-secondary);
 }
 
+.conversation-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.conversation-user {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  opacity: 0.8;
+}
+
 /* Chat Main Area */
 .chat-main {
   flex: 1;
@@ -155,6 +169,12 @@
   font-size: 14px;
   color: var(--text-secondary);
   margin: 0;
+}
+
+.conversation-owner {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: normal;
 }
 
 /* Enhanced Messages Container */

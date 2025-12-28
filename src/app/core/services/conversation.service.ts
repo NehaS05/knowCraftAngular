@@ -129,7 +129,10 @@ export class ConversationService {
             title: this.generateConversationTitle(transformedUserMessage.content),
             createdAt: transformedUserMessage.createdAt,
             updatedAt: transformedAiMessage.createdAt,
-            messageCount: updatedMessages.length
+            messageCount: updatedMessages.length,
+            userId: 0, // Will be updated when conversations are refreshed
+            userName: undefined,
+            userEmail: undefined
           };
           
           // Update conversations list and selected conversation
@@ -269,7 +272,11 @@ export class ConversationService {
       ...conversation,
       createdAt: new Date(conversation.createdAt),
       updatedAt: conversation.updatedAt ? new Date(conversation.updatedAt) : undefined,
-      preview: this.generatePreview(conversation)
+      preview: this.generatePreview(conversation),
+      // Ensure required properties are present with defaults
+      userId: conversation.userId || 0,
+      userName: conversation.userName || undefined,
+      userEmail: conversation.userEmail || undefined
     };
   }
 

@@ -17,10 +17,14 @@ export interface User {
   username: string;
   firstName: string;
   lastName: string;
-  userType: string;
+  phoneNumber: string;
+  roleName: string;
+  roleId: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  // Legacy properties for backward compatibility
+  userType?: string;
   lastLoginAt?: string;
 }
 
@@ -101,6 +105,16 @@ export class AuthService {
   getCurrentUser(): User | null {
     const userData = localStorage.getItem('userData');
     return userData ? JSON.parse(userData) : null;
+  }
+
+  isAdmin(): boolean {
+    const user = this.getCurrentUser();
+    return user?.roleName === 'Admin';
+  }
+
+  getUserRole(): string | null {
+    const user = this.getCurrentUser();
+    return user?.roleName || null;
   }
 
   getToken(): string | null {

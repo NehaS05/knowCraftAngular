@@ -39,10 +39,10 @@
       </div>
     </div>
     <div class="user-info" (click)="toggleLogoutMenu()">
-      <div class="user-avatar">AS</div>
+      <div class="user-avatar">{{ getUserInitials() }}</div>
       <div class="user-details" *ngIf="!isCollapsed">
-        <div class="user-name">as</div>
-        <div class="user-badge">INTERNAL TEAM</div>
+        <div class="user-name">{{ getUserDisplayName() }}</div>
+        <div class="user-badge">{{ getUserRoleDisplay() }}</div>
       </div>
     </div>
   </div>

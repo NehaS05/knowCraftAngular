@@ -47,7 +47,12 @@
         <div class="conversation-details">
           <div class="conversation-title">{{ conversation.title }}</div>
           <div class="conversation-preview">{{ getConversationPreview(conversation) }}</div>
-          <div class="conversation-time">{{ getConversationTime(conversation) }}</div>
+          <div class="conversation-meta">
+            <span class="conversation-time">{{ getConversationTime(conversation) }}</span>
+            <span class="conversation-user" *ngIf="isCurrentUserAdmin() && conversation.userEmail">
+              • {{ conversation.userEmail }}
+            </span>
+          </div>
         </div>
         <div class="conversation-actions">
           <button 
@@ -68,7 +73,12 @@
     <div class="chat-header">
       <div>
         <h2>{{ selectedConversation?.title || 'New Conversation' }}</h2>
-        <p class="chat-status">Active conversation</p>
+        <p class="chat-status">
+          Active conversation
+          <span *ngIf="isCurrentUserAdmin() && selectedConversation?.userEmail" class="conversation-owner">
+            • Owner: {{ selectedConversation?.userEmail }}
+          </span>
+        </p>
       </div>
     </div>
 

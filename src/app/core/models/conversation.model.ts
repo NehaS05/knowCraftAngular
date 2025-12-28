@@ -4,6 +4,12 @@ export interface Conversation {
   createdAt: Date;
   updatedAt?: Date;
   messageCount: number;
+  
+  // User information (for admin view)
+  userId: number;
+  userName?: string;
+  userEmail?: string;
+  
   // Computed properties for UI
   preview?: string;
 }
