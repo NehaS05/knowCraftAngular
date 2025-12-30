@@ -67,8 +67,8 @@ export class KnowledgeComponent implements OnInit {
           name: doc.sourceName,
           type: doc.sourceType,
           category: doc.category || undefined,
-          fileName: doc.sourceType ? `${doc.sourceName}${doc.sourceType}` : undefined,
-          url: undefined,
+          fileName: doc.sourceType === 'website' ? undefined : `${doc.sourceName}${doc.sourceType}`,
+          url: doc.originalUrl || undefined,
           status: (doc.status as 'Processing' | 'Ready' | 'Failed') || 'Processing',
           addedDate: doc.uploadedAt ? new Date(doc.uploadedAt) : new Date(),
           isActive: doc.isActive
@@ -220,18 +220,7 @@ export class KnowledgeComponent implements OnInit {
             this.uploadProgress = Math.round((100 * event.loaded) / event.total);
           } else if (event.type === HttpEventType.Response) {
             const resp = event.body;
-            const newSource: KnowledgeSource = {
-              id: this.nextId++,
-              name: this.sourceName,
-              type: 'file',
-              category: this.category || undefined,
-              fileName: this.selectedFile ? this.selectedFile.name : undefined,
-              url: undefined,
-              status: 'Ready',
-              addedDate: new Date()
-            };
-
-            this.knowledgeSources.push(newSource);
+            this.loadDocuments(); // Reload documents from backend
             this.toast.success('Upload successful', `${this.selectedFile?.name} uploaded`);
             this.activeTab = 'view';
 
@@ -251,6 +240,41 @@ export class KnowledgeComponent implements OnInit {
       });
 
       console.log('Uploading file with fields:', { File: this.selectedFile?.name, SourceName: this.sourceName, Category: this.category });
+      return;
+    }
+
+    // If website source, perform URL upload using backend
+    if (this.selectedSourceType === 'website' && this.websiteUrl) {
+      this.uploading = true;
+      this.uploadProgress = 0;
+      this.loading.show();
+
+      this.documentService.uploadDocument(null, this.sourceName, this.category, this.selectedSourceType, this.websiteUrl).subscribe({
+        next: (event: any) => {
+          if (event.type === HttpEventType.UploadProgress && event.total) {
+            this.uploadProgress = Math.round((100 * event.loaded) / event.total);
+          } else if (event.type === HttpEventType.Response) {
+            const resp = event.body;
+            this.loadDocuments(); // Reload documents from backend
+            this.toast.success('Web content extracted', `Content from ${this.websiteUrl} processed successfully`);
+            this.activeTab = 'view';
+
+            this.uploading = false;
+            this.uploadProgress = 0;
+            this.loading.hide();
+            this.closeModal();
+          }
+        },
+        error: (err) => {
+          console.error('Web content extraction failed', err);
+          this.toast.error('Web content extraction failed', err?.message || 'An error occurred while processing the URL');
+          this.uploading = false;
+          this.uploadProgress = 0;
+          this.loading.hide();
+        }
+      });
+
+      console.log('Processing URL:', { Url: this.websiteUrl, SourceName: this.sourceName, Category: this.category });
       return;
     }
 
@@ -335,7 +359,7 @@ export class KnowledgeComponent implements OnInit {
   getSourceTypeLabel(type: string): string {
     const typeMap: { [key: string]: string } = {
       'file': 'File',
-      'website': 'Url',
+      'website': 'Website',
       'text': 'Text',
       'qa': 'Q&A'
     };

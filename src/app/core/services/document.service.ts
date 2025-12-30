@@ -13,16 +13,26 @@ export class DocumentService {
 
   /**
    * Upload a document using the exact form fields expected by the backend:
-   * - 'File' (file)
+   * - 'File' (file) - for file uploads
+   * - 'Url' (string) - for web content extraction
    * - 'SourceName' (string)
    * - 'Category' (string)
+   * - 'SourceType' (string)
    */
-  uploadDocument(file: File, sourceName: string, category?: string, SourceType?: string): Observable<HttpEvent<any>> {
+  uploadDocument(file: File | null, sourceName: string, category?: string, sourceType?: string, url?: string): Observable<HttpEvent<any>> {
     const fd = new FormData();
-    fd.append('File', file, file.name);
+    
+    if (file) {
+      // File upload
+      fd.append('File', file, file.name);
+    } else if (url) {
+      // URL upload
+      fd.append('Url', url);
+    }
+    
     fd.append('SourceName', sourceName);
     fd.append('Category', category || '');
-    fd.append('SourceType', SourceType || '');
+    fd.append('SourceType', sourceType || '');
 
     return this.http.post<any>(`${this.apiUrl}/upload`, fd, {
       reportProgress: true,
