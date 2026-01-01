@@ -124,9 +124,9 @@ export class SidebarComponent implements OnInit {
   }
 
   logout() {
-    if (confirm('Are you sure you want to logout?')) {
+    // if (confirm('Are you sure you want to logout?')) {
       this.authService.logout();
-    }
+    // }
   }
 
   getUserInitials(): string {
