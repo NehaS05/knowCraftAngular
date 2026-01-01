@@ -9,45 +9,122 @@
     </button>
   </div>
 
+  <!-- Search Section -->
+  <div class="search-section">
+    <div class="search-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        placeholder="Search users..."
+        [(ngModel)]="searchQuery"
+        (input)="searchUsers()" />
+    </div>
+  </div>
+
   <div class="table-container">
-    <table class="user-table">
-      <thead>
-        <tr>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>Email</th>
-          <th>Username</th>
-          <th>Phone Number</th>
-          <th>Role</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of users" class="user-row">
-          <td>{{ user.firstName }}</td>
-          <td>{{ user.lastName }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.username }}</td>
-          <td>{{ user.phoneNumber }}</td>
-          <td>{{ user.roleName }}</td>
-          <td>
-            <span class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
-              {{ user.isActive ? 'Active' : 'Inactive' }}
-            </span>
-          </td>
-          <td class="actions-cell">
-            <button class="edit-btn" (click)="editUser(user)">Edit</button>
-            <button *ngIf="user.isActive" class="deactivate-btn" (click)="deactivateUser(user.id!)">Deactivate</button>
-            <button *ngIf="!user.isActive" class="activate-btn" (click)="activateUser(user.id!)">Activate</button>
-            <button class="delete-btn" (click)="deleteUser(user.id!)">Delete</button>
-          </td>
-        </tr>
-        <tr *ngIf="users.length === 0">
-          <td colspan="8" class="no-users">No users added yet.</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-wrapper" 
+         [class.scrollable]="itemsPerPage >= 10"
+         [class.items-5]="itemsPerPage === 5"
+         [class.items-10]="itemsPerPage === 10"
+         [class.items-25]="itemsPerPage === 25"
+         [class.items-50]="itemsPerPage === 50">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Username</th>
+            <th>Phone Number</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of paginatedUsers" class="user-row">
+            <td>{{ user.firstName }}</td>
+            <td>{{ user.lastName }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.phoneNumber }}</td>
+            <td>{{ user.roleName }}</td>
+            <td>
+              <span class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+                {{ user.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button class="edit-btn" (click)="editUser(user)">Edit</button>
+              <button *ngIf="user.isActive" class="deactivate-btn" (click)="deactivateUser(user.id!)">Deactivate</button>
+              <button *ngIf="!user.isActive" class="activate-btn" (click)="activateUser(user.id!)">Activate</button>
+              <button class="delete-btn" (click)="deleteUser(user.id!)">Delete</button>
+            </td>
+          </tr>
+          <tr *ngIf="paginatedUsers.length === 0">
+            <td colspan="8" class="no-users">No users found matching your search.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="pagination-container">
+    <div class="pagination-info">
+      <span *ngIf="hasData()">
+        Showing {{ getStartIndex() }} to {{ getEndIndex() }} of {{ totalItems }} entries
+      </span>
+      <span *ngIf="!hasData()">No entries found</span>
+      
+      <div class="items-per-page">
+        <label for="itemsPerPage">Show:</label>
+        <select id="itemsPerPage" [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+        </select>
+        <span>entries</span>
+      </div>
+    </div>
+    
+    <div class="pagination-controls">
+      <button 
+        class="pagination-btn" 
+        [disabled]="currentPage === 1" 
+        (click)="previousPage()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Previous
+      </button>
+      
+      <div class="page-numbers">
+        <button 
+          *ngFor="let page of getPageNumbers()" 
+          class="page-btn" 
+          [class.active]="page === currentPage"
+          [class.disabled]="isPageDisabled(page)"
+          [disabled]="isPageDisabled(page)"
+          (click)="goToPage(page)">
+          {{ page }}
+        </button>
+      </div>
+      
+      <button 
+        class="pagination-btn" 
+        [disabled]="currentPage >= Math.ceil(totalItems / itemsPerPage) || !hasData()" 
+        (click)="nextPage()">
+        Next
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <app-modal 

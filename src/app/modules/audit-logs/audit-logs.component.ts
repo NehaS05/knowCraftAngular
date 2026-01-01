@@ -39,8 +39,6 @@ export class AuditLogsComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadAuditLogs();
     this.subscribeToLoading();
-    // Generate sample data to ensure minimum 5 pages for demonstration
-    this.generateSampleData();
   }
 
   ngOnDestroy() {
@@ -65,70 +63,13 @@ export class AuditLogsComponent implements OnInit, OnDestroy {
           queries: log.requestCount
         }));
         
-        // Ensure minimum data for pagination demo
-        this.ensureMinimumData();
-        
         this.filteredLogs = [...this.auditLogs];
         this.updatePagination();
       },
       error: () => {
         this.toastService.error('Error', 'Failed to load audit logs');
-        // Generate sample data on error to demonstrate pagination
-        this.generateSampleData();
       }
     });
-  }
-
-  private generateSampleData() {
-    const sampleUsers = [
-      'john.doe@company.com', 'jane.smith@client.com', 'admin@internal.com',
-      'user1@client.com', 'user2@company.com', 'manager@internal.com',
-      'analyst@company.com', 'client.user@external.com', 'dev@internal.com',
-      'support@company.com', 'test.user@client.com', 'lead@internal.com'
-    ];
-    
-    const roles = ['Admin', 'ClientAccount', 'InternalTeam'];
-    const sampleData: AuditLog[] = [];
-    
-    // Generate at least 50 records to ensure minimum 5 pages
-    for (let i = 0; i < 50; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-      
-      sampleData.push({
-        timestamp: date.toLocaleDateString(),
-        user: sampleUsers[Math.floor(Math.random() * sampleUsers.length)],
-        role: this.mapRoleToDisplayName(roles[Math.floor(Math.random() * roles.length)]),
-        queries: Math.floor(Math.random() * 50) + 1
-      });
-    }
-    
-    this.auditLogs = sampleData;
-    this.filteredLogs = [...this.auditLogs];
-    this.updatePagination();
-  }
-
-  private ensureMinimumData() {
-    // If we have less than 50 records, add some sample data to demonstrate pagination
-    if (this.auditLogs.length < 50) {
-      const additionalRecords = 50 - this.auditLogs.length;
-      const sampleUsers = [
-        'demo.user1@company.com', 'demo.user2@client.com', 'demo.admin@internal.com',
-        'sample.user@client.com', 'test.account@company.com'
-      ];
-      
-      for (let i = 0; i < additionalRecords; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - Math.floor(Math.random() * 15));
-        
-        this.auditLogs.push({
-          timestamp: date.toLocaleDateString(),
-          user: sampleUsers[Math.floor(Math.random() * sampleUsers.length)],
-          role: i % 2 === 0 ? 'INTERNAL TEAM' : 'CLIENT',
-          queries: Math.floor(Math.random() * 30) + 1
-        });
-      }
-    }
   }
 
   private mapRoleToDisplayName(role: string): 'INTERNAL TEAM' | 'CLIENT' {
