@@ -43,7 +43,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let log of filteredLogs">
+        <tr *ngFor="let log of paginatedLogs">
           <td>{{ log.timestamp }}</td>
           <td>{{ log.user }}</td>
           <td>
@@ -56,8 +56,63 @@
       </tbody>
     </table>
 
-    <div class="empty-state" *ngIf="filteredLogs.length === 0 && !isLoading">
+    <div class="empty-state" *ngIf="paginatedLogs.length === 0 && !isLoading">
       <p>No audit logs found matching your search.</p>
+    </div>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="pagination-container">
+    <div class="pagination-info">
+      <span *ngIf="hasData()">
+        Showing {{ getStartIndex() }} to {{ getEndIndex() }} of {{ totalItems }} entries
+      </span>
+      <span *ngIf="!hasData()">No entries found</span>
+      
+      <div class="items-per-page">
+        <label for="itemsPerPage">Show:</label>
+        <select id="itemsPerPage" [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+        </select>
+        <span>entries</span>
+      </div>
+    </div>
+    
+    <div class="pagination-controls">
+      <button 
+        class="pagination-btn" 
+        [disabled]="currentPage === 1" 
+        (click)="previousPage()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Previous
+      </button>
+      
+      <div class="page-numbers">
+        <button 
+          *ngFor="let page of getPageNumbers()" 
+          class="page-btn" 
+          [class.active]="page === currentPage"
+          [class.disabled]="isPageDisabled(page)"
+          [disabled]="isPageDisabled(page)"
+          (click)="goToPage(page)">
+          {{ page }}
+        </button>
+      </div>
+      
+      <button 
+        class="pagination-btn" 
+        [disabled]="currentPage >= Math.ceil(totalItems / itemsPerPage) || !hasData()" 
+        (click)="nextPage()">
+        Next
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
     </div>
   </div>
 </div>
