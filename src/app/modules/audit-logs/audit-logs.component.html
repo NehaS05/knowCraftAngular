@@ -33,28 +33,35 @@
       <app-loading></app-loading>
     </div>
     
-    <table class="logs-table" [class.loading]="isLoading">
-      <thead>
-        <tr>
-          <th>DATE</th>
-          <th>USER</th>
-          <th>ROLE</th>
-          <th>NUMBER OF REQUESTS</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let log of paginatedLogs">
-          <td>{{ log.timestamp }}</td>
-          <td>{{ log.user }}</td>
-          <td>
-            <span class="role-badge" [class.internal]="log.role === 'INTERNAL TEAM'" [class.client]="log.role === 'CLIENT'">
-              {{ log.role }}
-            </span>
-          </td>
-          <td>{{ log.queries }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-wrapper" 
+         [class.scrollable]="itemsPerPage >= 10"
+         [class.items-5]="itemsPerPage === 5"
+         [class.items-10]="itemsPerPage === 10"
+         [class.items-25]="itemsPerPage === 25"
+         [class.items-50]="itemsPerPage === 50">
+      <table class="logs-table" [class.loading]="isLoading">
+        <thead>
+          <tr>
+            <th>DATE</th>
+            <th>USER</th>
+            <th>ROLE</th>
+            <th>NUMBER OF REQUESTS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of paginatedLogs">
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.user }}</td>
+            <td>
+              <span class="role-badge" [class.internal]="log.role === 'INTERNAL TEAM'" [class.client]="log.role === 'CLIENT'">
+                {{ log.role }}
+              </span>
+            </td>
+            <td>{{ log.queries }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <div class="empty-state" *ngIf="paginatedLogs.length === 0 && !isLoading">
       <p>No audit logs found matching your search.</p>

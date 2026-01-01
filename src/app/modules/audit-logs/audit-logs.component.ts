@@ -185,6 +185,7 @@ export class AuditLogsComponent implements OnInit, OnDestroy {
     }
     
     this.updatePaginatedLogs();
+    this.adjustTableHeight();
   }
 
   updatePaginatedLogs() {
@@ -217,6 +218,16 @@ export class AuditLogsComponent implements OnInit, OnDestroy {
   onItemsPerPageChange() {
     this.currentPage = 1;
     this.updatePagination();
+    this.adjustTableHeight();
+  }
+
+  adjustTableHeight() {
+    // The height is now controlled by CSS classes, but we can add additional logic here if needed
+    // This method is kept for future enhancements
+  }
+
+  getTableWrapperClass(): string {
+    return `items-${this.itemsPerPage}`;
   }
 
   getPageNumbers(): number[] {

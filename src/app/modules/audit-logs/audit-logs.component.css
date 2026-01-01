@@ -91,6 +91,84 @@
   border-radius: 12px;
   overflow: hidden;
   position: relative;
+  max-height: 600px; /* Fixed height for scrolling */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Add a subtle shadow to indicate scrollable content */
+.table-wrapper.scrollable::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(37, 99, 235, 0.1), transparent);
+  z-index: 2;
+}
+
+.table-wrapper.scrollable::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(37, 99, 235, 0.1), transparent);
+  z-index: 2;
+}
+
+.table-wrapper.scrollable {
+  max-height: 500px; /* Adjust based on items per page */
+}
+
+/* Dynamic height classes for different items per page */
+.table-wrapper.items-5 {
+  max-height: 200px;
+}
+
+.table-wrapper.items-10 {
+  max-height: 300px;
+}
+
+.table-wrapper.items-25 {
+  max-height: 400px;
+}
+
+.table-wrapper.items-50 {
+  max-height: 500px;
+}
+
+.table-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: var(--input-bg);
+  border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #2563eb;
+}
+
+/* Firefox scrollbar styling */
+.table-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) var(--input-bg);
 }
 
 .loading-overlay {
@@ -120,6 +198,9 @@
 .logs-table thead {
   background: var(--input-bg);
   border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .logs-table th {
@@ -130,6 +211,7 @@
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  background: var(--input-bg);
 }
 
 .logs-table tbody tr {
@@ -350,6 +432,19 @@
     height: 32px;
     font-size: 13px;
   }
+
+  /* Adjust table heights for mobile */
+  .table-wrapper.items-25 {
+    max-height: 350px;
+  }
+
+  .table-wrapper.items-50 {
+    max-height: 400px;
+  }
+
+  .logs-table-container {
+    max-height: 500px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -367,5 +462,27 @@
     width: 28px;
     height: 28px;
     font-size: 12px;
+  }
+
+  /* Further adjust table heights for small mobile */
+  .table-wrapper.items-25 {
+    max-height: 300px;
+  }
+
+  .table-wrapper.items-50 {
+    max-height: 350px;
+  }
+
+  .logs-table-container {
+    max-height: 400px;
+  }
+
+  /* Make table horizontally scrollable on very small screens */
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .logs-table {
+    min-width: 600px;
   }
 }
