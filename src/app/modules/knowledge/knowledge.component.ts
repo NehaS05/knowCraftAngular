@@ -67,7 +67,7 @@ export class KnowledgeComponent implements OnInit {
           name: doc.sourceName,
           type: doc.sourceType,
           category: doc.category || undefined,
-          fileName: doc.sourceType === 'website' ? undefined : `${doc.sourceName}${doc.sourceType}`,
+          fileName: this.getFileNameForSource(doc),
           url: doc.originalUrl || undefined,
           status: (doc.status as 'Processing' | 'Ready' | 'Failed') || 'Processing',
           addedDate: doc.uploadedAt ? new Date(doc.uploadedAt) : new Date(),
@@ -81,6 +81,16 @@ export class KnowledgeComponent implements OnInit {
         this.loading.hide();
       }
     });
+  }
+
+  private getFileNameForSource(doc: DocumentDto): string | undefined {
+    if (doc.sourceType === 'website') {
+      return undefined; // Website sources show URL instead
+    } else if (doc.sourceType === 'text' || doc.sourceType === 'qa') {
+      return `${doc.sourceName}.txt`; // Text and Q&A sources show as .txt files
+    } else {
+      return `${doc.sourceName}${doc.sourceType}`; // File sources show with extension
+    }
   }
 
   sourceTypes: SourceType[] = [
@@ -278,33 +288,86 @@ export class KnowledgeComponent implements OnInit {
       return;
     }
 
-    // Other source types (website, text, qa): add in-memory source as before
-    const newSource: KnowledgeSource = {
-      id: this.nextId++,
-      name: this.sourceName,
-      type: this.selectedSourceType,
-      category: this.category || undefined,
-      fileName: this.selectedFile?.name,
-      url: this.websiteUrl || undefined,
-      status: 'Processing',
-      addedDate: new Date()
-    };
+    // If text content source, create text file and process through backend
+    if (this.selectedSourceType === 'text' && this.textContent.trim()) {
+      this.uploading = true;
+      this.uploadProgress = 0;
+      this.loading.show();
 
-    this.knowledgeSources.push(newSource);
-    this.toast.success('Source added', 'Source added successfully');
-    this.activeTab = 'view';
+      // Create a text file from the content
+      const textBlob = new Blob([this.textContent], { type: 'text/plain' });
+      const textFile = new File([textBlob], `${this.sourceName}.txt`, { type: 'text/plain' });
 
-    console.log('Saving source:', {
-      name: this.sourceName,
-      type: this.selectedSourceType,
-      file: this.selectedFile,
-      websiteUrl: this.websiteUrl,
-      textContent: this.textContent,
-      qaContent: this.qaContent,
-      category: this.category
-    });
+      this.documentService.uploadDocument(textFile, this.sourceName, this.category, this.selectedSourceType).subscribe({
+        next: (event: any) => {
+          if (event.type === HttpEventType.UploadProgress && event.total) {
+            this.uploadProgress = Math.round((100 * event.loaded) / event.total);
+          } else if (event.type === HttpEventType.Response) {
+            const resp = event.body;
+            this.loadDocuments(); // Reload documents from backend
+            this.toast.success('Text content processed', 'Your text content has been processed successfully');
+            this.activeTab = 'view';
 
-    this.closeModal();
+            this.uploading = false;
+            this.uploadProgress = 0;
+            this.loading.hide();
+            this.closeModal();
+          }
+        },
+        error: (err) => {
+          console.error('Text content processing failed', err);
+          this.toast.error('Text content processing failed', err?.message || 'An error occurred while processing the text');
+          this.uploading = false;
+          this.uploadProgress = 0;
+          this.loading.hide();
+        }
+      });
+
+      console.log('Processing text content:', { SourceName: this.sourceName, Category: this.category, ContentLength: this.textContent.length });
+      return;
+    }
+
+    // If Q&A content source, create text file and process through backend
+    if (this.selectedSourceType === 'qa' && this.qaContent.trim()) {
+      this.uploading = true;
+      this.uploadProgress = 0;
+      this.loading.show();
+
+      // Create a text file from the Q&A content
+      const qaBlob = new Blob([this.qaContent], { type: 'text/plain' });
+      const qaFile = new File([qaBlob], `${this.sourceName}.txt`, { type: 'text/plain' });
+
+      this.documentService.uploadDocument(qaFile, this.sourceName, this.category, this.selectedSourceType).subscribe({
+        next: (event: any) => {
+          if (event.type === HttpEventType.UploadProgress && event.total) {
+            this.uploadProgress = Math.round((100 * event.loaded) / event.total);
+          } else if (event.type === HttpEventType.Response) {
+            const resp = event.body;
+            this.loadDocuments(); // Reload documents from backend
+            this.toast.success('Q&A content processed', 'Your Q&A content has been processed successfully');
+            this.activeTab = 'view';
+
+            this.uploading = false;
+            this.uploadProgress = 0;
+            this.loading.hide();
+            this.closeModal();
+          }
+        },
+        error: (err) => {
+          console.error('Q&A content processing failed', err);
+          this.toast.error('Q&A content processing failed', err?.message || 'An error occurred while processing the Q&A content');
+          this.uploading = false;
+          this.uploadProgress = 0;
+          this.loading.hide();
+        }
+      });
+
+      console.log('Processing Q&A content:', { SourceName: this.sourceName, Category: this.category, ContentLength: this.qaContent.length });
+      return;
+    }
+
+    // Fallback for any unhandled cases
+    this.toast.error('Invalid source type', 'Please select a valid source type and provide the required content');
   }
 
   getSourceIconClass(type: string): string {
