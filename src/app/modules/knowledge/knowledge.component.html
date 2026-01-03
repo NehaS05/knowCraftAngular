@@ -64,7 +64,7 @@
       </div>
 
       <!-- Text Content -->
-      <div class="knowledge-card" (click)="openTextContent()">
+      <!-- <div class="knowledge-card" (click)="openTextContent()">
         <div class="card-icon orange">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="4 7 4 4 20 4 20 7"></polyline>
@@ -81,10 +81,10 @@
           </svg>
           Add
         </button>
-      </div>
+      </div> -->
 
       <!-- Q&A Pairs -->
-      <div class="knowledge-card" (click)="openQAPairs()">
+      <!-- <div class="knowledge-card" (click)="openQAPairs()">
         <div class="card-icon red">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
@@ -101,7 +101,7 @@
           </svg>
           Add
         </button>
-      </div>
+      </div> -->
     </div>
   </div>
 
@@ -295,24 +295,24 @@
       </div>
 
       <!-- Text Content (shown only when Text Content is selected) -->
-      <div class="form-group" *ngIf="selectedSourceType === 'text'">
+      <!-- <div class="form-group" *ngIf="selectedSourceType === 'text'">
         <label>Text Content</label>
         <textarea 
           class="form-control text-area" 
           rows="8"
           placeholder="Enter your text content here..."
           [(ngModel)]="textContent"></textarea>
-      </div>
+      </div> -->
 
       <!-- Q&A Pairs (shown only when Q&A Pairs is selected) -->
-      <div class="form-group" *ngIf="selectedSourceType === 'qa'">
+      <!-- <div class="form-group" *ngIf="selectedSourceType === 'qa'">
         <label>Q&A Content (format: Q: question A: answer)</label>
         <textarea 
           class="form-control text-area" 
           rows="8"
           placeholder="Q: What is AI?&#10;A: Artificial Intelligence is..."
           [(ngModel)]="qaContent"></textarea>
-      </div>
+      </div> -->
 
       <!-- Category (Optional) -->
       <div class="form-group">

@@ -680,6 +680,11 @@ select.form-control {
   color: #ea580c;
 }
 
+.status-badge.Completed {
+  background: #d1fae5;
+  color: #059669;
+}
+
 .status-badge.Ready {
   background: #d1fae5;
   color: #059669;

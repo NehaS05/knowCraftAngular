@@ -96,8 +96,8 @@ export class KnowledgeComponent implements OnInit {
   sourceTypes: SourceType[] = [
     { value: 'file', label: 'File Upload', icon: 'file' },
     { value: 'website', label: 'Website URL', icon: 'globe' },
-    { value: 'text', label: 'Text Content', icon: 'text' },
-    { value: 'qa', label: 'Q&A Pairs', icon: 'help' }
+    // { value: 'text', label: 'Text Content', icon: 'text' },
+    // { value: 'qa', label: 'Q&A Pairs', icon: 'help' }
   ];
 
   setActiveTab(tab: 'add' | 'view') {
