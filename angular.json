@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/user-management-app",
+            "outputPath": "dist/knowCraft",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": [
