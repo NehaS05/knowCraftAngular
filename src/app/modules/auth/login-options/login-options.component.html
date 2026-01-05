@@ -1,0 +1,79 @@
+<div class="login-options-container">
+  <div class="login-options-header">
+    <h2>Choose how to sign in</h2>
+    <p class="subtitle">Select your preferred authentication method</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading authentication options...</p>
+  </div>
+
+  <!-- Login Options -->
+  <div *ngIf="!isLoading" class="login-options-grid">
+    <div 
+      *ngFor="let option of getEnabledOptions()" 
+      class="login-option"
+      [class.recommended]="option.recommended"
+      [class.preferred]="isPreferred(option.method)"
+      [class.disabled]="!option.enabled"
+      (click)="selectAuthMethod(option.method)"
+    >
+      <!-- Option Icon -->
+      <div class="option-icon">
+        <i 
+          class="icon" 
+          [class.icon-user]="option.icon === 'user'"
+          [class.icon-microsoft]="option.icon === 'microsoft'"
+        ></i>
+      </div>
+
+      <!-- Option Content -->
+      <div class="option-content">
+        <h3 class="option-title">{{ option.title }}</h3>
+        <p class="option-description">{{ option.description }}</p>
+        
+        <!-- Badges -->
+        <div class="option-badges">
+          <span *ngIf="option.recommended" class="badge recommended-badge">
+            Recommended
+          </span>
+          <span *ngIf="isPreferred(option.method)" class="badge preferred-badge">
+            Your Preference
+          </span>
+        </div>
+      </div>
+
+      <!-- Arrow Icon -->
+      <div class="option-arrow">
+        <i class="icon-arrow-right"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Options Available -->
+  <div *ngIf="!isLoading && getEnabledOptions().length === 0" class="no-options">
+    <div class="no-options-icon">
+      <i class="icon-warning"></i>
+    </div>
+    <h3>No authentication methods available</h3>
+    <p>Please contact your administrator for assistance.</p>
+  </div>
+
+  <!-- Single Option Auto-redirect Message -->
+  <div *ngIf="!isLoading && getEnabledOptions().length === 1" class="single-option-message">
+    <p class="info-text">
+      <i class="icon-info"></i>
+      Only one authentication method is available
+    </p>
+  </div>
+
+  <!-- Help Text -->
+  <div *ngIf="!isLoading && hasMultipleOptions()" class="help-text">
+    <p>
+      <i class="icon-help"></i>
+      Your choice will be remembered for future logins. You can change this preference anytime in settings.
+    </p>
+  </div>
+</div>

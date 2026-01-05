@@ -1,22 +1,28 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ModalComponent } from './components/modal/modal.component';
-import { ToastComponent } from './components/toast/toast.component';
+import { LoadingIndicatorComponent } from './components/loading-indicator/loading-indicator.component';
 import { LoadingComponent } from './components/loading/loading.component';
+import { ToastComponent } from './components/toast/toast.component';
+import { ToastContainerComponent } from './components/toast-container/toast-container.component';
+import { ModalComponent } from './components/modal/modal.component';
 
 @NgModule({
   declarations: [
-    ModalComponent,
+    LoadingIndicatorComponent,
+    LoadingComponent,
     ToastComponent,
-    LoadingComponent
+    ToastContainerComponent,
+    ModalComponent
   ],
   imports: [
     CommonModule
   ],
   exports: [
-    ModalComponent,
+    LoadingIndicatorComponent,
+    LoadingComponent,
     ToastComponent,
-    LoadingComponent
+    ToastContainerComponent,
+    ModalComponent
   ]
 })
 export class SharedModule { }

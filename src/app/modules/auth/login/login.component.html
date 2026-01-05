@@ -8,73 +8,126 @@
       <p>Secure intelligent query system for fintech</p>
     </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      <div class="form-group">
-        <label for="username">Username</label>
-        <input 
-          type="text" 
-          id="username" 
-          formControlName="username"
-          placeholder="Enter your username"
-          [class.error]="isFieldInvalid('username')"
-          [disabled]="isLoading">
-        <div class="error-message" *ngIf="isFieldInvalid('username')">
-          {{ getFieldErrorMessage('username') }}
+    <!-- Loading Overlay -->
+    <app-loading-indicator 
+      *ngIf="loadingState.isLoading" 
+      [message]="loadingState.message || 'Loading...'"
+      [overlay]="true">
+    </app-loading-indicator>
+
+    <!-- Error Display -->
+    <div *ngIf="currentError" class="error-container">
+      <div class="error-content">
+        <div class="error-icon">⚠️</div>
+        <div class="error-details">
+          <h3>{{ currentError.code }}</h3>
+          <p>{{ currentError.message }}</p>
+          <div class="error-actions">
+            <button 
+              *ngIf="authErrorService.shouldRetry(currentError)" 
+              class="retry-btn" 
+              (click)="retryOperation()">
+              Try Again
+            </button>
+            <button 
+              *ngIf="currentError.canFallback && currentError.fallbackMethod === 'custom'" 
+              class="fallback-btn" 
+              (click)="fallbackToCustomAuth()">
+              Use Username/Password
+            </button>
+            <button class="dismiss-btn" (click)="clearError()">
+              Dismiss
+            </button>
+          </div>
         </div>
       </div>
+    </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input 
-          type="password" 
-          id="password" 
-          formControlName="password"
-          placeholder="Enter your password"
-          [class.error]="isFieldInvalid('password')"
-          [disabled]="isLoading">
-        <div class="error-message" *ngIf="isFieldInvalid('password')">
-          {{ getFieldErrorMessage('password') }}
+    <!-- Loading State for SSO Callback -->
+    <div *ngIf="currentView === 'sso-callback'" class="sso-callback-loading">
+      <app-loading-indicator message="Processing Microsoft authentication..."></app-loading-indicator>
+    </div>
+
+    <!-- Login Options View -->
+    <div *ngIf="currentView === 'options' && !currentError" class="login-options-view">
+      <app-login-options (authMethodSelected)="onAuthMethodSelected($event)"></app-login-options>
+    </div>
+
+    <!-- Custom Login Form View -->
+    <div *ngIf="currentView === 'custom' && !currentError" class="custom-login-view">
+      <!-- Back to Options Button (if multiple auth methods available) -->
+      <div class="back-to-options" *ngIf="authService.isSSOEnabled() && authService.isCustomAuthEnabled()">
+        <button type="button" class="back-btn" (click)="showLoginOptions()">
+          ← Back to login options
+        </button>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input 
+            type="text" 
+            id="username" 
+            formControlName="username"
+            placeholder="Enter your username"
+            [class.error]="isFieldInvalid('username')"
+            [disabled]="isLoading">
+          <div class="error-message" *ngIf="isFieldInvalid('username')">
+            {{ getFieldErrorMessage('username') }}
+          </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label>Account Type</label>
-        <div class="radio-group">
-          <label class="radio-option">
-            <input 
-              type="radio" 
-              formControlName="accountType" 
-              value="client"
-              [disabled]="isLoading"
-              checked>
-            <span class="radio-custom"></span>
-            Client Account
-          </label>
-          <label class="radio-option">
-            <input 
-              type="radio" 
-              formControlName="accountType" 
-              value="internal"
-              [disabled]="isLoading">
-            <span class="radio-custom"></span>
-            Internal Team
-          </label>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            formControlName="password"
+            placeholder="Enter your password"
+            [class.error]="isFieldInvalid('password')"
+            [disabled]="isLoading">
+          <div class="error-message" *ngIf="isFieldInvalid('password')">
+            {{ getFieldErrorMessage('password') }}
+          </div>
         </div>
-      </div>
 
-      <!-- General error message -->
-      <div class="error-message" *ngIf="errorMessage" style="text-align: center; margin-bottom: 1rem;">
-        {{ errorMessage }}
-      </div>
+        <div class="form-group">
+          <label>Account Type</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input 
+                type="radio" 
+                formControlName="accountType" 
+                value="client"
+                [disabled]="isLoading"
+                checked>
+              <span class="radio-custom"></span>
+              Client Account
+            </label>
+            <label class="radio-option">
+              <input 
+                type="radio" 
+                formControlName="accountType" 
+                value="internal"
+                [disabled]="isLoading">
+              <span class="radio-custom"></span>
+              Internal Team
+            </label>
+          </div>
+        </div>
 
-      <button type="submit" class="sign-in-btn" [disabled]="loginForm.invalid || isLoading">
-        <span *ngIf="isLoading">Signing In...</span>
-        <span *ngIf="!isLoading">Sign In</span>
-      </button>
+        <button type="submit" class="sign-in-btn" [disabled]="loginForm.invalid || isLoading">
+          <span *ngIf="isLoading">
+            <app-loading-indicator size="small" [showMessage]="false"></app-loading-indicator>
+            Signing In...
+          </span>
+          <span *ngIf="!isLoading">Sign In</span>
+        </button>
 
-      <div class="footer-text">
-        Secured with enterprise grade encryption and audit logging
-      </div>
-    </form>
+        <div class="footer-text">
+          Secured with enterprise grade encryption and audit logging
+        </div>
+      </form>
+    </div>
   </div>
 </div>
