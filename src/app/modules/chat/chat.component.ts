@@ -145,7 +145,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   // Track by function for better performance with *ngFor
   trackByMessageId(index: number, message: Message): any {
-    return message.id || index;
+    // Use a combination of id, content, and type for better uniqueness
+    return message.id ? `${message.id}-${message.type}` : `${index}-${message.content.substring(0, 50)}-${message.type}`;
   }
 
   // Message action methods

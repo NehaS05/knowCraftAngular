@@ -72,9 +72,16 @@ export class ConversationService {
       tap(messages => {
         // Transform and sort messages by timestamp
         const transformedMessages = messages.map(msg => this.transformMessage(msg));
-        const sortedMessages = transformedMessages.sort((a, b) => 
+        
+        // Remove duplicates based on ID
+        const uniqueMessages = transformedMessages.filter((message, index, self) => 
+          index === self.findIndex(m => m.id === message.id)
+        );
+        
+        const sortedMessages = uniqueMessages.sort((a, b) => 
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
+        
         this.currentMessagesSubject.next(sortedMessages);
       }),
       catchError(error => this.handleError(error, 'Failed to load messages')),
@@ -88,10 +95,14 @@ export class ConversationService {
   sendMessage(dto: SendMessageDto): Observable<ChatResponseDto> {
     this.loadingService.show();
     
+    // Store temporary ID for proper cleanup
+    let tempMessageId: number | null = null;
+    
     // Add user message immediately for better UX
     if (dto.conversationId) {
+      tempMessageId = Date.now(); // Store the temp ID
       const tempUserMessage: Message = {
-        id: Date.now(), // Temporary ID
+        id: tempMessageId,
         conversationId: dto.conversationId,
         content: dto.content,
         type: 'User',
@@ -116,11 +127,30 @@ export class ConversationService {
           const currentMessages = this.currentMessagesSubject.value;
           
           // Remove temporary message if it exists and replace with real messages
-          const filteredMessages = dto.conversationId 
-            ? currentMessages.filter(msg => msg.id !== Date.now())
+          const filteredMessages = tempMessageId 
+            ? currentMessages.filter(msg => msg.id !== tempMessageId)
             : currentMessages;
           
-          const updatedMessages = [...filteredMessages, transformedUserMessage, transformedAiMessage];
+          // Additional safeguard: Check for duplicate messages by content and type
+          const isDuplicateUser = filteredMessages.some(msg => 
+            msg.content === transformedUserMessage.content && 
+            msg.type === transformedUserMessage.type &&
+            Math.abs(new Date(msg.createdAt).getTime() - new Date(transformedUserMessage.createdAt).getTime()) < 5000 // Within 5 seconds
+          );
+          
+          const isDuplicateAi = filteredMessages.some(msg => 
+            msg.id === transformedAiMessage.id || 
+            (msg.ragAnswer === transformedAiMessage.ragAnswer && 
+             msg.azureAiAnswer === transformedAiMessage.azureAiAnswer &&
+             Math.abs(new Date(msg.createdAt).getTime() - new Date(transformedAiMessage.createdAt).getTime()) < 5000)
+          );
+          
+          // Only add messages if they're not duplicates
+          const messagesToAdd = [];
+          if (!isDuplicateUser) messagesToAdd.push(transformedUserMessage);
+          if (!isDuplicateAi) messagesToAdd.push(transformedAiMessage);
+          
+          const updatedMessages = [...filteredMessages, ...messagesToAdd];
           this.currentMessagesSubject.next(updatedMessages);
           
           // Create or update conversation object
@@ -141,10 +171,10 @@ export class ConversationService {
         }
       }),
       catchError(error => {
-        // Remove temporary message on error
-        if (dto.conversationId) {
+        // Remove temporary message on error using the stored temp ID
+        if (tempMessageId) {
           const currentMessages = this.currentMessagesSubject.value;
-          const filteredMessages = currentMessages.filter(msg => msg.id !== Date.now());
+          const filteredMessages = currentMessages.filter(msg => msg.id !== tempMessageId);
           this.currentMessagesSubject.next(filteredMessages);
         }
         return this.handleError(error, 'Failed to send message');
