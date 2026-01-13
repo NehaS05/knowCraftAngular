@@ -66,4 +66,18 @@ export class DocumentService {
   deleteDocument(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  /**
+   * Check if a document is searchable
+   */
+  getDocumentSearchStatus(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}/search-status`);
+  }
+
+  /**
+   * Verify and update document search status
+   */
+  verifyDocumentSearch(id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/verify-search`, {});
+  }
 }
