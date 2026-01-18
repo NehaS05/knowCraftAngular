@@ -36,9 +36,14 @@ export interface Message {
 }
 
 export interface CitationDto {
-  source: string;
-  content: string;
+  source?: string; // Legacy property
+  content?: string; // Legacy property
+  documentId?: number;
+  documentName?: string;
+  pageNumber?: number;
+  excerpt?: string;
   relevanceScore: number;
+  sourceUrl?: string;
 }
 
 export interface SendMessageDto {

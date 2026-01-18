@@ -351,4 +351,11 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   isCurrentUserAdmin(): boolean {
     return this.authService.isAdmin();
   }
+
+  openSourceUrl(event: Event, url: string): void {
+    event.preventDefault();
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  }
 }
