@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
 import { DocumentService } from '../../core/services/document.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -18,9 +18,10 @@ interface KnowledgeSource {
   category?: string;
   fileName?: string;
   url?: string;
-  status: 'Processing' | 'Ready' | 'Failed';
+  status: 'Processing' | 'Indexing' | 'Ready' | 'Failed';
   addedDate: Date;
   isActive?: boolean;
+  isSearchable?: boolean;
 }
 
 @Component({
@@ -28,7 +29,7 @@ interface KnowledgeSource {
   templateUrl: './knowledge.component.html',
   styleUrls: ['./knowledge.component.css']
 })
-export class KnowledgeComponent implements OnInit {
+export class KnowledgeComponent implements OnInit, OnDestroy {
   activeTab: 'add' | 'view' = 'add';
   showModal = false;
   isEditMode = false;
@@ -48,6 +49,9 @@ export class KnowledgeComponent implements OnInit {
   uploading = false;
   uploadProgress = 0;
 
+  // Auto-refresh for indexing documents
+  private refreshInterval: any;
+
   constructor(
     private documentService: DocumentService,
     private toast: ToastService,
@@ -56,6 +60,50 @@ export class KnowledgeComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDocuments();
+    this.startAutoRefresh();
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoRefresh();
+  }
+
+  private startAutoRefresh(): void {
+    // Check indexing documents every 30 seconds
+    this.refreshInterval = setInterval(() => {
+      this.checkIndexingDocuments();
+    }, 30000);
+  }
+
+  private stopAutoRefresh(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+  }
+
+  private checkIndexingDocuments(): void {
+    const indexingDocs = this.knowledgeSources.filter(doc => doc.status === 'Indexing');
+    
+    if (indexingDocs.length === 0) {
+      return; // No indexing documents to check
+    }
+
+    indexingDocs.forEach(doc => {
+      this.documentService.verifyDocumentSearch(doc.id).subscribe({
+        next: (status) => {
+          const source = this.knowledgeSources.find(s => s.id === doc.id);
+          if (source && status.status === 'Completed') {
+            source.status = 'Ready';
+            source.isSearchable = true;
+            this.toast.success('Document Ready', `${source.name} is now searchable in chat`);
+          }
+        },
+        error: (err) => {
+          // Silently handle errors during auto-refresh
+          console.warn(`Auto-refresh failed for document ${doc.id}:`, err);
+        }
+      });
+    });
   }
 
   private loadDocuments(): void {
@@ -69,10 +117,15 @@ export class KnowledgeComponent implements OnInit {
           category: doc.category || undefined,
           fileName: this.getFileNameForSource(doc),
           url: doc.originalUrl || undefined,
-          status: (doc.status as 'Processing' | 'Ready' | 'Failed') || 'Processing',
+          status: this.mapDocumentStatus(doc.status),
           addedDate: doc.uploadedAt ? new Date(doc.uploadedAt) : new Date(),
-          isActive: doc.isActive
+          isActive: doc.isActive,
+          isSearchable: false // Will be checked separately for completed documents
         }));
+        
+        // Check search status for completed documents
+        this.checkSearchStatusForCompletedDocuments();
+        
         this.loading.hide();
       },
       error: (err) => {
@@ -80,6 +133,65 @@ export class KnowledgeComponent implements OnInit {
         this.toast.error('Failed to load documents', err?.message || 'See console for details');
         this.loading.hide();
       }
+    });
+  }
+
+  private mapDocumentStatus(status: string): 'Processing' | 'Indexing' | 'Ready' | 'Failed' {
+    switch (status) {
+      case 'Pending':
+      case 'Processing':
+        return 'Processing';
+      case 'Indexing':
+        return 'Indexing';
+      case 'Completed':
+        return 'Ready';
+      case 'Failed':
+        return 'Failed';
+      default:
+        return 'Processing';
+    }
+  }
+
+  private checkSearchStatusForCompletedDocuments(): void {
+    const indexingDocs = this.knowledgeSources.filter(doc => doc.status === 'Indexing');
+    
+    indexingDocs.forEach(doc => {
+      this.documentService.verifyDocumentSearch(doc.id).subscribe({
+        next: (status) => {
+          const source = this.knowledgeSources.find(s => s.id === doc.id);
+          if (source) {
+            source.isSearchable = status.isSearchable;
+            if (status.status === 'Completed') {
+              source.status = 'Ready';
+              this.toast.success('Document Ready', `${source.name} is now searchable in chat`);
+            }
+          }
+        },
+        error: (err) => {
+          console.warn(`Failed to verify search status for document ${doc.id}:`, err);
+        }
+      });
+    });
+
+    // Also check completed documents that might not be searchable yet
+    const completedDocs = this.knowledgeSources.filter(doc => doc.status === 'Ready');
+    
+    completedDocs.forEach(doc => {
+      this.documentService.getDocumentSearchStatus(doc.id).subscribe({
+        next: (status) => {
+          const source = this.knowledgeSources.find(s => s.id === doc.id);
+          if (source) {
+            source.isSearchable = status.isSearchable;
+            // If document is completed but not searchable, show as indexing
+            if (!status.isSearchable && source.status === 'Ready') {
+              source.status = 'Indexing';
+            }
+          }
+        },
+        error: (err) => {
+          console.warn(`Failed to check search status for document ${doc.id}:`, err);
+        }
+      });
     });
   }
 
@@ -430,14 +542,36 @@ export class KnowledgeComponent implements OnInit {
   }
 
   getReadyCount(): number {
-    return this.knowledgeSources.filter(s => s.status === 'Ready').length;
+    return this.knowledgeSources.filter(s => s.status === 'Ready' && s.isSearchable !== false).length;
   }
 
   getProcessingCount(): number {
     return this.knowledgeSources.filter(s => s.status === 'Processing').length;
   }
 
+  getIndexingCount(): number {
+    return this.knowledgeSources.filter(s => s.status === 'Indexing').length;
+  }
+
   getFailedCount(): number {
     return this.knowledgeSources.filter(s => s.status === 'Failed').length;
+  }
+
+  refreshSearchStatus(source: KnowledgeSource): void {
+    this.documentService.verifyDocumentSearch(source.id).subscribe({
+      next: (status) => {
+        source.isSearchable = status.isSearchable;
+        if (status.status === 'Completed') {
+          source.status = 'Ready';
+          this.toast.success('Document Ready', `${source.name} is now searchable in chat`);
+        } else if (status.status === 'Indexing') {
+          this.toast.info('Still Indexing', `${source.name} is still being indexed. Please try again in a few moments.`);
+        }
+      },
+      error: (err) => {
+        console.warn(`Failed to refresh search status for document ${source.id}:`, err);
+        this.toast.error('Failed to check search status', 'Please try again later');
+      }
+    });
   }
 }

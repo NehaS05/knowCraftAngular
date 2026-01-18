@@ -680,6 +680,11 @@ select.form-control {
   color: #ea580c;
 }
 
+.status-badge.Indexing {
+  background: #e0e7ff;
+  color: #6366f1;
+}
+
 .status-badge.Completed {
   background: #d1fae5;
   color: #059669;
@@ -693,6 +698,40 @@ select.form-control {
 .status-badge.Failed {
   background: #fecaca;
   color: #dc2626;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refresh-status-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refresh-status-btn:hover {
+  background: var(--hover-bg);
+  color: var(--primary-color);
+}
+
+.search-warning {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.stat-icon.purple {
+  background: #e0e7ff;
+  color: #6366f1;
 }
 
 .table-actions {
