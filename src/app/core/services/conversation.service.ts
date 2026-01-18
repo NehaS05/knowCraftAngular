@@ -314,12 +314,28 @@ export class ConversationService {
    * Transform backend message to frontend model
    */
   private transformMessage(message: any): Message {
+    // Ensure proper date parsing - handle both Date objects and ISO strings
+    let createdAt: Date;
+    if (message.createdAt instanceof Date) {
+      createdAt = message.createdAt;
+    } else if (typeof message.createdAt === 'string') {
+      // Parse ISO string date (handles UTC dates properly)
+      createdAt = new Date(message.createdAt);
+      // If date is invalid, use current date as fallback
+      if (isNaN(createdAt.getTime())) {
+        console.warn('Invalid date received:', message.createdAt);
+        createdAt = new Date();
+      }
+    } else {
+      createdAt = new Date();
+    }
+
     return {
       ...message,
-      createdAt: new Date(message.createdAt),
+      createdAt: createdAt,
       // Add computed properties for UI compatibility
       isUser: message.type === 'user',
-      timestamp: new Date(message.createdAt),
+      timestamp: createdAt,
       chatGptResponse: message.azureAiAnswer,
       knowledgeBaseResponse: message.ragAnswer
     };

@@ -286,19 +286,42 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   }
 
-  getTimeAgo(timestamp: Date): string {
-    const now = new Date();
-    const messageTime = new Date(timestamp);
-    const diff = now.getTime() - messageTime.getTime();
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+  getTimeAgo(timestamp: Date | string): string {
+    if (!timestamp) {
+      return 'Just now';
+    }
 
-    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
-    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-    return 'Just now';
+    try {
+      const now = new Date();
+      // Handle both Date objects and ISO string dates
+      const messageTime = timestamp instanceof Date ? timestamp : new Date(timestamp);
+      
+      // Check if date is valid
+      if (isNaN(messageTime.getTime())) {
+        return 'Just now';
+      }
+
+      const diff = now.getTime() - messageTime.getTime();
+      
+      // Handle future dates (shouldn't happen, but just in case)
+      if (diff < 0) {
+        return 'Just now';
+      }
+
+      const seconds = Math.floor(diff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+      if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+      if (seconds > 0) return `${seconds} second${seconds > 1 ? 's' : ''} ago`;
+      return 'Just now';
+    } catch (error) {
+      console.error('Error calculating time ago:', error);
+      return 'Just now';
+    }
   }
 
   get filteredConversations(): Conversation[] {
