@@ -292,16 +292,34 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     }
 
     try {
-      const now = new Date();
-      // Handle both Date objects and ISO string dates
-      const messageTime = timestamp instanceof Date ? timestamp : new Date(timestamp);
+      // Get current time in UTC milliseconds
+      const now = Date.now();
+      
+      // Parse the timestamp - ensure UTC handling
+      let messageTime: Date;
+      if (timestamp instanceof Date) {
+        messageTime = timestamp;
+      } else if (typeof timestamp === 'string') {
+        // If the string doesn't end with 'Z' or timezone, assume it's UTC and append 'Z'
+        let dateString = timestamp.trim();
+        if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
+          // If it's an ISO string without timezone, treat as UTC
+          if (dateString.includes('T')) {
+            dateString = dateString.endsWith('Z') ? dateString : dateString + 'Z';
+          }
+        }
+        messageTime = new Date(dateString);
+      } else {
+        return 'Just now';
+      }
       
       // Check if date is valid
       if (isNaN(messageTime.getTime())) {
         return 'Just now';
       }
 
-      const diff = now.getTime() - messageTime.getTime();
+      // Calculate difference in milliseconds (both are UTC)
+      const diff = now - messageTime.getTime();
       
       // Handle future dates (shouldn't happen, but just in case)
       if (diff < 0) {

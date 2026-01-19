@@ -298,10 +298,29 @@ export class ConversationService {
    * Transform backend conversation to frontend model
    */
   private transformConversation(conversation: any): Conversation {
+    // Helper function to parse UTC dates correctly
+    const parseUtcDate = (dateValue: any): Date => {
+      if (!dateValue) return new Date();
+      if (dateValue instanceof Date) return dateValue;
+      if (typeof dateValue === 'string') {
+        let dateString = dateValue.trim();
+        // If the string doesn't have timezone info, assume it's UTC
+        if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
+          // If it's an ISO string without timezone, treat as UTC by appending 'Z'
+          if (dateString.includes('T')) {
+            dateString = dateString + 'Z';
+          }
+        }
+        const parsed = new Date(dateString);
+        return isNaN(parsed.getTime()) ? new Date() : parsed;
+      }
+      return new Date();
+    };
+
     return {
       ...conversation,
-      createdAt: new Date(conversation.createdAt),
-      updatedAt: conversation.updatedAt ? new Date(conversation.updatedAt) : undefined,
+      createdAt: parseUtcDate(conversation.createdAt),
+      updatedAt: conversation.updatedAt ? parseUtcDate(conversation.updatedAt) : undefined,
       preview: this.generatePreview(conversation),
       // Ensure required properties are present with defaults
       userId: conversation.userId || 0,
@@ -319,8 +338,16 @@ export class ConversationService {
     if (message.createdAt instanceof Date) {
       createdAt = message.createdAt;
     } else if (typeof message.createdAt === 'string') {
-      // Parse ISO string date (handles UTC dates properly)
-      createdAt = new Date(message.createdAt);
+      // Parse ISO string date - ensure UTC handling
+      let dateString = message.createdAt.trim();
+      // If the string doesn't have timezone info, assume it's UTC
+      if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
+        // If it's an ISO string without timezone, treat as UTC by appending 'Z'
+        if (dateString.includes('T')) {
+          dateString = dateString + 'Z';
+        }
+      }
+      createdAt = new Date(dateString);
       // If date is invalid, use current date as fallback
       if (isNaN(createdAt.getTime())) {
         console.warn('Invalid date received:', message.createdAt);
