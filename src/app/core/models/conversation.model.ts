@@ -10,6 +10,10 @@ export interface Conversation {
   userName?: string;
   userEmail?: string;
   
+  // Share information
+  isShared?: boolean;
+  sharedByUserId?: number;
+  
   // Computed properties for UI
   preview?: string;
 }
@@ -87,4 +91,17 @@ export interface ApiError {
   message: string;
   error?: string;
   statusCode?: number;
+}
+
+export interface ShareConversationDto {
+  conversationId: number;
+  userIds: number[];
+}
+
+export interface UserForSharing {
+  id: number;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
 }

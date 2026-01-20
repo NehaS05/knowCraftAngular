@@ -1,11 +1,11 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, OnDestroy } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ConversationService } from '../../core/services/conversation.service';
 import { LoadingService } from '../../core/services/loading.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Conversation, Message, SendMessageDto } from '../../core/models/conversation.model';
+import { Conversation, Message, SendMessageDto, UserForSharing } from '../../core/models/conversation.model';
 
 @Component({
   selector: 'app-chat',
@@ -22,8 +22,14 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   searchQuery: string = '';
   showScrollToBottom = false;
   isAiTyping = false;
+  showShareModal = false;
+  usersForSharing: UserForSharing[] = [];
+  selectedUserIds: number[] = [];
+  shareSearchQuery: string = '';
+  isSearchingUsers = false;
   private shouldScrollToBottom = false;
   private destroy$ = new Subject<void>();
+  private shareSearchSubject = new Subject<string>();
   
   // Data from service
   conversations: Conversation[] = [];
@@ -71,6 +77,15 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     
     // Add scroll event listener
     this.addScrollListener();
+
+    // Setup share search debounce
+    this.shareSearchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(query => {
+      this.searchUsersForSharing(query);
+    });
   }
 
   private addScrollListener(): void {
@@ -398,5 +413,78 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     if (url) {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
+  }
+
+  openShareModal(): void {
+    if (!this.selectedConversation) {
+      this.toastService.warning('No conversation selected', 'Please select a conversation to share');
+      return;
+    }
+    this.showShareModal = true;
+    this.selectedUserIds = [];
+    this.shareSearchQuery = '';
+    this.usersForSharing = [];
+    this.searchUsersForSharing('');
+  }
+
+  closeShareModal(): void {
+    this.showShareModal = false;
+    this.selectedUserIds = [];
+    this.shareSearchQuery = '';
+    this.usersForSharing = [];
+  }
+
+  onShareSearchChange(): void {
+    this.shareSearchSubject.next(this.shareSearchQuery);
+  }
+
+  searchUsersForSharing(query: string): void {
+    if (!this.selectedConversation) return;
+    
+    this.isSearchingUsers = true;
+    this.conversationService.getUsersForSharing(query).subscribe({
+      next: (users) => {
+        this.usersForSharing = users;
+        this.isSearchingUsers = false;
+      },
+      error: (error) => {
+        console.error('Failed to search users:', error);
+        this.isSearchingUsers = false;
+      }
+    });
+  }
+
+  toggleUserSelection(userId: number): void {
+    const index = this.selectedUserIds.indexOf(userId);
+    if (index > -1) {
+      this.selectedUserIds.splice(index, 1);
+    } else {
+      this.selectedUserIds.push(userId);
+    }
+  }
+
+  isUserSelected(userId: number): boolean {
+    return this.selectedUserIds.includes(userId);
+  }
+
+  shareConversation(): void {
+    if (!this.selectedConversation) {
+      this.toastService.warning('No conversation selected');
+      return;
+    }
+
+    if (this.selectedUserIds.length === 0) {
+      this.toastService.warning('No users selected', 'Please select at least one user to share with');
+      return;
+    }
+
+    this.conversationService.shareConversation(this.selectedConversation.id, this.selectedUserIds).subscribe({
+      next: () => {
+        this.closeShareModal();
+      },
+      error: (error) => {
+        console.error('Failed to share conversation:', error);
+      }
+    });
   }
 }

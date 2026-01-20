@@ -11,7 +11,9 @@ import {
   SendMessageResponse,
   ConversationListResponse,
   ConversationMessagesResponse,
-  ApiError 
+  ApiError,
+  ShareConversationDto,
+  UserForSharing
 } from '../models/conversation.model';
 import { LoadingService } from './loading.service';
 import { ToastService } from './toast.service';
@@ -39,7 +41,7 @@ export class ConversationService {
   ) {}
 
   /**
-   * Load all conversations for the current user
+   * Load all conversations for the current user (including shared)
    */
   loadConversations(): Observable<Conversation[]> {
     this.loadingService.show();
@@ -270,6 +272,67 @@ export class ConversationService {
   }
 
   /**
+   * Share a conversation with users
+   */
+  shareConversation(conversationId: number, userIds: number[]): Observable<void> {
+    this.loadingService.show();
+    
+    const dto: ShareConversationDto = {
+      conversationId,
+      userIds
+    };
+    
+    return this.http.post<void>(`${this.API_URL}/${conversationId}/share`, dto).pipe(
+      tap(() => {
+        this.toastService.success('Conversation shared successfully');
+        // Refresh conversations to show updated list
+        this.loadConversations().subscribe();
+      }),
+      catchError(error => this.handleError(error, 'Failed to share conversation')),
+      finalize(() => this.loadingService.hide())
+    );
+  }
+
+  /**
+   * Get users available for sharing
+   */
+  getUsersForSharing(searchQuery?: string): Observable<UserForSharing[]> {
+    const params = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : '';
+    return this.http.get<UserForSharing[]>(`${this.API_URL}/users-for-sharing${params}`).pipe(
+      catchError(error => this.handleError(error, 'Failed to load users'))
+    );
+  }
+
+  /**
+   * Get conversations shared with current user
+   */
+  getSharedConversations(): Observable<Conversation[]> {
+    this.loadingService.show();
+    
+    return this.http.get<Conversation[]>(`${this.API_URL}/shared`).pipe(
+      tap(conversations => {
+        const transformedConversations = conversations.map(conv => this.transformConversation(conv));
+        const sortedConversations = transformedConversations.sort((a, b) => {
+          const aDate = new Date(a.updatedAt || a.createdAt);
+          const bDate = new Date(b.updatedAt || b.createdAt);
+          return bDate.getTime() - aDate.getTime();
+        });
+        // Merge with existing conversations
+        const currentConversations = this.conversationsSubject.value;
+        const merged = [...currentConversations];
+        transformedConversations.forEach(sharedConv => {
+          if (!merged.some(c => c.id === sharedConv.id)) {
+            merged.push(sharedConv);
+          }
+        });
+        this.conversationsSubject.next(merged);
+      }),
+      catchError(error => this.handleError(error, 'Failed to load shared conversations')),
+      finalize(() => this.loadingService.hide())
+    );
+  }
+
+  /**
    * Update a conversation in the list (used after sending messages)
    */
   private updateConversationInList(updatedConversation: Conversation): void {
@@ -325,7 +388,9 @@ export class ConversationService {
       // Ensure required properties are present with defaults
       userId: conversation.userId || 0,
       userName: conversation.userName || undefined,
-      userEmail: conversation.userEmail || undefined
+      userEmail: conversation.userEmail || undefined,
+      isShared: conversation.isShared || false,
+      sharedByUserId: conversation.sharedByUserId || undefined
     };
   }
 
