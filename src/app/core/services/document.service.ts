@@ -34,10 +34,10 @@ export class DocumentService {
     fd.append('Category', category || '');
     fd.append('SourceType', sourceType || '');
 
-    return this.http.post<any>(`${this.apiUrl}/upload`, fd, {
+    return this.http.post<DocumentDto>(`${this.apiUrl}/upload`, fd, {
       reportProgress: true,
       observe: 'events',
-      responseType: 'text' as 'json'
+      responseType: 'json'
     });
   }
 

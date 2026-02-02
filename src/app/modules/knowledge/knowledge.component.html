@@ -217,13 +217,13 @@
               <td>{{ source.category || '-' }}</td>
               <td>
                 <div class="status-container">
-                  <span class="status-badge" [ngClass]="source.status">
-                    {{ source.status }}
+                  <span class="status-badge" [ngClass]="source.status" [title]="source.status === 'Failed' && source.processingError ? source.processingError : getConditionLabel(source)">
+                    {{ getConditionLabel(source) }}
                   </span>
                   <button 
-                    *ngIf="source.status === 'Indexing' || (source.status === 'Ready' && source.isSearchable === false)"
+                    *ngIf="source.status === 'Indexing' || source.status === 'Processing' || (source.status === 'Ready' && source.isSearchable === false)"
                     class="refresh-status-btn" 
-                    title="Check if document is searchable"
+                    [title]="source.status === 'Indexing' || source.status === 'Processing' ? 'Check processing status' : 'Check if document is searchable'"
                     (click)="refreshSearchStatus(source)">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="23 4 23 10 17 10"></polyline>
@@ -237,6 +237,7 @@
                     title="Document is processed but not yet searchable in chat">
                     ⚠️
                   </span>
+                  <span *ngIf="source.status === 'Failed' && source.processingError" class="status-error" [title]="source.processingError">⚠️</span>
                 </div>
               </td>
               <td>

@@ -22,6 +22,7 @@ interface KnowledgeSource {
   addedDate: Date;
   isActive?: boolean;
   isSearchable?: boolean;
+  processingError?: string | null;
 }
 
 @Component({
@@ -67,11 +68,12 @@ export class KnowledgeComponent implements OnInit, OnDestroy {
     this.stopAutoRefresh();
   }
 
+  private readonly POLL_INTERVAL_MS = 8000;
+
   private startAutoRefresh(): void {
-    // Check indexing documents every 30 seconds
     this.refreshInterval = setInterval(() => {
-      this.checkIndexingDocuments();
-    }, 30000);
+      this.pollDocumentsInProgress();
+    }, this.POLL_INTERVAL_MS);
   }
 
   private stopAutoRefresh(): void {
@@ -81,29 +83,68 @@ export class KnowledgeComponent implements OnInit, OnDestroy {
     }
   }
 
-  private checkIndexingDocuments(): void {
-    const indexingDocs = this.knowledgeSources.filter(doc => doc.status === 'Indexing');
-    
-    if (indexingDocs.length === 0) {
-      return; // No indexing documents to check
-    }
+  private pollDocumentsInProgress(): void {
+    const inProgress = this.knowledgeSources.filter(doc => doc.status === 'Indexing' || doc.status === 'Processing');
+    if (inProgress.length === 0) return;
 
-    indexingDocs.forEach(doc => {
-      this.documentService.verifyDocumentSearch(doc.id).subscribe({
-        next: (status) => {
-          const source = this.knowledgeSources.find(s => s.id === doc.id);
-          if (source && status.status === 'Completed') {
-            source.status = 'Ready';
-            source.isSearchable = true;
-            this.toast.success('Document Ready', `${source.name} is now searchable in chat`);
-          }
-        },
-        error: (err) => {
-          // Silently handle errors during auto-refresh
-          console.warn(`Auto-refresh failed for document ${doc.id}:`, err);
-        }
-      });
+    this.documentService.getDocuments().subscribe({
+      next: (docs: DocumentDto[]) => {
+        const before = new Map(this.knowledgeSources.map(s => [s.id, s.status]));
+        this.knowledgeSources = docs.map(doc => ({
+          id: doc.id,
+          name: doc.sourceName,
+          type: doc.sourceType,
+          category: doc.category || undefined,
+          fileName: this.getFileNameForSource(doc),
+          url: doc.originalUrl || undefined,
+          status: this.mapDocumentStatus(doc.status),
+          addedDate: doc.uploadedAt ? new Date(doc.uploadedAt) : new Date(),
+          isActive: doc.isActive,
+          isSearchable: doc.status === 'Completed',
+          processingError: doc.processingError ?? undefined
+        }));
+        this.notifyStatusChanges(before);
+      },
+      error: () => { /* silent */ }
     });
+  }
+
+  private notifyStatusChanges(before: Map<number, string>): void {
+    this.knowledgeSources.forEach(source => {
+      const prev = before.get(source.id);
+      if (prev === 'Indexing' || prev === 'Processing') {
+        if (source.status === 'Ready') {
+          this.toast.success('Document ready', `${source.name} is now searchable in chat`);
+        } else if (source.status === 'Failed') {
+          this.toast.error('Processing failed', source.processingError || `${source.name} could not be indexed`);
+        }
+      }
+    });
+  }
+
+  private upsertDocumentFromResponse(doc: DocumentDto | null): void {
+    if (!doc?.id) return;
+    const status = this.mapDocumentStatus(doc.status);
+    const existing = this.knowledgeSources.find(s => s.id === doc.id);
+    const source: KnowledgeSource = {
+      id: doc.id,
+      name: doc.sourceName,
+      type: doc.sourceType,
+      category: doc.category || undefined,
+      fileName: this.getFileNameForSource(doc),
+      url: doc.originalUrl || undefined,
+      status,
+      addedDate: doc.uploadedAt ? new Date(doc.uploadedAt) : new Date(),
+      isActive: doc.isActive,
+      isSearchable: doc.status === 'Completed',
+      processingError: doc.processingError ?? undefined
+    };
+    if (existing) {
+      const idx = this.knowledgeSources.findIndex(s => s.id === doc.id);
+      this.knowledgeSources[idx] = source;
+    } else {
+      this.knowledgeSources = [source, ...this.knowledgeSources];
+    }
   }
 
   private loadDocuments(): void {
@@ -120,7 +161,8 @@ export class KnowledgeComponent implements OnInit, OnDestroy {
           status: this.mapDocumentStatus(doc.status),
           addedDate: doc.uploadedAt ? new Date(doc.uploadedAt) : new Date(),
           isActive: doc.isActive,
-          isSearchable: false // Will be checked separately for completed documents
+          isSearchable: doc.status === 'Completed',
+          processingError: doc.processingError ?? undefined
         }));
         
         // Check search status for completed documents
@@ -136,17 +178,24 @@ export class KnowledgeComponent implements OnInit, OnDestroy {
     });
   }
 
-  private mapDocumentStatus(status: string): 'Processing' | 'Indexing' | 'Ready' | 'Failed' {
-    switch (status) {
+  private mapDocumentStatus(status: string | number): 'Processing' | 'Indexing' | 'Ready' | 'Failed' {
+    const s = typeof status === 'number' ? status.toString() : (status || '').toString();
+    switch (s) {
       case 'Pending':
       case 'Processing':
+      case '2':
         return 'Processing';
       case 'Indexing':
+      case '3':
         return 'Indexing';
       case 'Completed':
+      case '4':
         return 'Ready';
       case 'Failed':
+      case '5':
         return 'Failed';
+      case '1':
+        return 'Processing';
       default:
         return 'Processing';
     }
@@ -341,9 +390,10 @@ export class KnowledgeComponent implements OnInit, OnDestroy {
           if (event.type === HttpEventType.UploadProgress && event.total) {
             this.uploadProgress = Math.round((100 * event.loaded) / event.total);
           } else if (event.type === HttpEventType.Response) {
-            const resp = event.body;
-            this.loadDocuments(); // Reload documents from backend
-            this.toast.success('Upload successful', `${this.selectedFile?.name} uploaded`);
+            const doc = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+            this.upsertDocumentFromResponse(doc);
+            this.loadDocuments();
+            this.toast.success('Upload successful', `${this.selectedFile?.name} uploaded — creating vectors in background`);
             this.activeTab = 'view';
 
             this.uploading = false;
@@ -558,20 +608,35 @@ export class KnowledgeComponent implements OnInit, OnDestroy {
   }
 
   refreshSearchStatus(source: KnowledgeSource): void {
-    this.documentService.verifyDocumentSearch(source.id).subscribe({
-      next: (status) => {
-        source.isSearchable = status.isSearchable;
-        if (status.status === 'Completed') {
-          source.status = 'Ready';
-          this.toast.success('Document Ready', `${source.name} is now searchable in chat`);
-        } else if (status.status === 'Indexing') {
-          this.toast.info('Still Indexing', `${source.name} is still being indexed. Please try again in a few moments.`);
+    this.documentService.getDocuments().subscribe({
+      next: (docs: DocumentDto[]) => {
+        const doc = docs.find(d => d.id === source.id);
+        if (!doc) return;
+        const newStatus = this.mapDocumentStatus(doc.status);
+        source.status = newStatus;
+        source.isSearchable = doc.status === 'Completed';
+        source.processingError = doc.processingError ?? undefined;
+        if (newStatus === 'Ready') {
+          this.toast.success('Document ready', `${source.name} is now searchable in chat`);
+        } else if (newStatus === 'Indexing' || newStatus === 'Processing') {
+          this.toast.info('Still processing', `${source.name} is still being processed. Check again in a moment.`);
+        } else if (newStatus === 'Failed') {
+          this.toast.error('Processing failed', source.processingError || 'See condition for details');
         }
       },
-      error: (err) => {
-        console.warn(`Failed to refresh search status for document ${source.id}:`, err);
-        this.toast.error('Failed to check search status', 'Please try again later');
+      error: () => {
+        this.toast.error('Failed to check status', 'Please try again later');
       }
     });
+  }
+
+  getConditionLabel(source: KnowledgeSource): string {
+    switch (source.status) {
+      case 'Processing': return 'Processing...';
+      case 'Indexing': return 'Creating vectors...';
+      case 'Ready': return 'Ready';
+      case 'Failed': return 'Failed';
+      default: return source.status;
+    }
   }
 }

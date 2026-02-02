@@ -729,6 +729,11 @@ select.form-control {
   opacity: 0.8;
 }
 
+.status-error {
+  font-size: 12px;
+  cursor: help;
+}
+
 .stat-icon.purple {
   background: #e0e7ff;
   color: #6366f1;

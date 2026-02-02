@@ -10,4 +10,5 @@ export interface DocumentDto {
   status: string;
   processedAt?: string | null; // ISO string or null
   originalUrl?: string | null; // Added for web content sources
+  processingError?: string | null;
 }
