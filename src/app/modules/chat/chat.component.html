@@ -339,6 +339,21 @@
     </div>
 
     <div class="chat-input-container">
+      <div class="doc-scope-bar" *ngIf="availableDocuments.length > 0">
+        <button type="button" class="doc-scope-btn" (click)="toggleDocumentSelector()" [title]="selectedDocumentIds.length > 0 ? 'Search in selected docs (click to change)' : 'Search in all docs (click to restrict)'">
+          <span *ngIf="selectedDocumentIds.length === 0">Search in: All documents</span>
+          <span *ngIf="selectedDocumentIds.length > 0">Search in: {{ selectedDocumentIds.length }} selected</span>
+        </button>
+        <button type="button" class="doc-scope-clear" *ngIf="selectedDocumentIds.length > 0" (click)="clearDocumentSelection()" title="Clear selection">Clear</button>
+        <div class="doc-selector-panel" *ngIf="showDocumentSelector">
+          <div class="doc-selector-list">
+            <label *ngFor="let doc of availableDocuments" class="doc-selector-item">
+              <input type="checkbox" [checked]="isDocumentSelected(doc.id)" (change)="toggleDocumentSelection(doc.id)">
+              <span>{{ doc.sourceName }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
       <div class="chat-input-wrapper">
         <input 
           type="text" 

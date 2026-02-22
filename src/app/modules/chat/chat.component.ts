@@ -2,10 +2,12 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, OnDestroy }
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ConversationService } from '../../core/services/conversation.service';
+import { DocumentService } from '../../core/services/document.service';
 import { LoadingService } from '../../core/services/loading.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Conversation, Message, SendMessageDto, UserForSharing } from '../../core/models/conversation.model';
+import { DocumentDto } from '../../core/models/document.model';
 
 @Component({
   selector: 'app-chat',
@@ -27,10 +29,13 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   selectedUserIds: number[] = [];
   shareSearchQuery: string = '';
   isSearchingUsers = false;
+  showDocumentSelector = false;
+  availableDocuments: DocumentDto[] = [];
+  selectedDocumentIds: number[] = [];
   private shouldScrollToBottom = false;
   private destroy$ = new Subject<void>();
   private shareSearchSubject = new Subject<string>();
-  
+
   // Data from service
   conversations: Conversation[] = [];
   selectedConversation: Conversation | null = null;
@@ -39,6 +44,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   constructor(
     private conversationService: ConversationService,
+    private documentService: DocumentService,
     private loadingService: LoadingService,
     private toastService: ToastService,
     private authService: AuthService
@@ -72,9 +78,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.isLoading = loading;
       });
 
-    // Load conversations on init
     this.loadConversations();
-    
+    this.loadDocuments();
     // Add scroll event listener
     this.addScrollListener();
 
@@ -115,6 +120,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   selectConversation(conversation: Conversation) {
+    this.clearDocumentSelectionForConversationSwitch();
     this.conversationService.selectConversation(conversation);
   }
 
@@ -187,9 +193,45 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   createNewConversation() {
-    // Clear selection to start a new conversation
+    this.clearDocumentSelectionForConversationSwitch();
     this.conversationService.clearSelection();
     this.newMessage = '';
+  }
+
+  loadDocuments(): void {
+    this.documentService.getDocuments().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (docs) => {
+        this.availableDocuments = (docs || []).filter(d => d.isActive && d.status === 'Completed');
+      },
+      error: () => this.availableDocuments = []
+    });
+  }
+
+  toggleDocumentSelector(): void {
+    this.showDocumentSelector = !this.showDocumentSelector;
+  }
+
+  isDocumentSelected(docId: number): boolean {
+    return this.selectedDocumentIds.includes(docId);
+  }
+
+  toggleDocumentSelection(docId: number): void {
+    const idx = this.selectedDocumentIds.indexOf(docId);
+    if (idx === -1) {
+      this.selectedDocumentIds = [...this.selectedDocumentIds, docId];
+    } else {
+      this.selectedDocumentIds = this.selectedDocumentIds.filter(id => id !== docId);
+    }
+  }
+
+  clearDocumentSelection(): void {
+    this.selectedDocumentIds = [];
+    this.showDocumentSelector = false;
+  }
+
+  clearDocumentSelectionForConversationSwitch(): void {
+    this.selectedDocumentIds = [];
+    this.showDocumentSelector = false;
   }
 
   sendMessage() {
@@ -209,7 +251,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     const dto: SendMessageDto = {
       conversationId: this.selectedConversation?.id || null,
-      content: messageContent
+      content: messageContent,
+      documentIds: this.selectedDocumentIds.length > 0 ? this.selectedDocumentIds : null
     };
 
     this.conversationService.sendMessage(dto).subscribe({

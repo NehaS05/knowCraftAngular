@@ -53,6 +53,8 @@ export interface CitationDto {
 export interface SendMessageDto {
   conversationId?: number | null;
   content: string;
+  /** When set, RAG search is restricted to these document IDs (e.g. selected knowledge base). */
+  documentIds?: number[] | null;
 }
 
 export interface ChatResponseDto {
