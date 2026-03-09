@@ -8,6 +8,8 @@ import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Conversation, Message, SendMessageDto, UserForSharing } from '../../core/models/conversation.model';
 import { DocumentDto } from '../../core/models/document.model';
+import { marked } from 'marked';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-chat',
@@ -47,8 +49,15 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     private documentService: DocumentService,
     private loadingService: LoadingService,
     private toastService: ToastService,
-    private authService: AuthService
-  ) {}
+    private authService: AuthService,
+    private sanitizer: DomSanitizer
+  ) {
+    // Configure marked options for better rendering
+    marked.setOptions({
+      breaks: true, // Convert \n to <br>
+      gfm: true // GitHub Flavored Markdown
+    });
+  }
 
   ngOnInit() {
     // Subscribe to service observables
@@ -529,5 +538,24 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         console.error('Failed to share conversation:', error);
       }
     });
+  }
+
+  // Markdown rendering methods
+  renderMarkdown(content: string): SafeHtml {
+    if (!content) return '';
+    try {
+      const html = marked.parse(content, { async: false }) as string;
+      return this.sanitizer.sanitize(1, html) || '';
+    } catch (error) {
+      console.error('Error rendering markdown:', error);
+      return content;
+    }
+  }
+
+  getFormattedContent(message: Message): { rag: SafeHtml, azure: SafeHtml } {
+    return {
+      rag: message.ragAnswer ? this.renderMarkdown(message.ragAnswer) : '',
+      azure: message.azureAiAnswer ? this.renderMarkdown(message.azureAiAnswer) : ''
+    };
   }
 }

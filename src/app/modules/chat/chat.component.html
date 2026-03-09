@@ -237,9 +237,7 @@
                     </div>
                     <span class="response-title">Knowledge Base</span>
                   </div>
-                  <div class="response-content">
-                    {{ message.ragAnswer || 'No Knowledge Base response available' }}
-                  </div>
+                  <div class="response-content markdown-content" [innerHTML]="getFormattedContent(message).rag"></div>
                   <!-- Citations with source URLs -->
                   <div class="citations-section" *ngIf="message.citations && message.citations.length > 0">
                     <div class="citations-label">Sources:</div>
@@ -277,15 +275,12 @@
                     </div>
                     <span class="response-title">Azure AI</span>
                   </div>
-                  <div class="response-content">
-                    {{ message.azureAiAnswer || 'No Azure AI response available' }}
-                  </div>
+                  <div class="response-content markdown-content" [innerHTML]="getFormattedContent(message).azure"></div>
                 </div>
               </div>
 
               <!-- Legacy content for backward compatibility -->
-              <div class="single-response" *ngIf="message.content && !message.ragAnswer && !message.azureAiAnswer">
-                {{ message.content }}
+              <div class="single-response markdown-content" *ngIf="message.content && !message.ragAnswer && !message.azureAiAnswer" [innerHTML]="renderMarkdown(message.content)">
               </div>
 
               <div class="message-meta">
