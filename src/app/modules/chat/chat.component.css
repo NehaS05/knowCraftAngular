@@ -306,141 +306,145 @@
   border: none;
 }
 
-/* Simplified Dual Response Layout (side-by-side on wide screens) */
-.dual-response-container {
+/* Unified Single Response Layout */
+.unified-response-container {
   display: flex;
-  flex-direction: row;
-  gap: 12px;
+  flex-direction: column;
   width: 100%;
-  min-width: 520px; /* ensure both panels have room */
-  max-width: 100%;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
+  border-left: 4px solid #667eea;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
 }
 
-.dual-response-container:hover {
+.unified-response-container:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
-/* Each section should share available space and scroll independently */
-.response-section {
-  flex: 1 1 0;
-  min-width: 220px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  min-height: 220px; /* minimum height before enabling internal scroll */
-  max-height: 60vh; /* cap height relative to viewport */
-}
-
-/* Divider between the two panels when side-by-side */
-.response-section:not(:last-child) {
-  border-right: 1px solid var(--border-color);
-}
-
-/* Colored accent bars (kept as left accent inside each panel) */
-.chatgpt-section {
-  padding-left: 12px;
-  border-left: 4px solid #10a37f;
-}
-
-.kb-section {
-  padding-left: 12px;
-  border-left: 4px solid #2563eb;
-}
-
-/* On smaller screens, stack vertically as before */
-@media (max-width: 768px) {
-  .dual-response-container {
-    flex-direction: column;
-    min-width: unset;
-  }
-
-  .response-section:not(:last-child) {
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .response-section {
-    min-width: unset;
-    /* uncap height on small screens so panels expand naturally */
-    max-height: none;
-    min-height: unset;
-  }
-
-  .response-content {
-    max-height: none;
-    overflow: visible;
-  }
-}
-
-/* Simplified Response Header */
-.response-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px 6px 12px;
-  background: var(--input-bg);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.response-icon {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.chatgpt-icon {
-  background: #10a37f;
-  color: white;
-}
-
-.kb-icon {
-  background: #2563eb;
-  color: white;
-}
-
-.response-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Simplified Response Content */
-.response-content {
-  padding: 16px;
+.unified-response-content {
+  padding: 18px 20px;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--text-primary);
   background: var(--card-bg);
-  flex: 1 1 auto; /* allow content area to grow and scroll */
-  min-height: 0; /* enables proper flexbox scrolling */
-  overflow-y: auto; /* scroll when content exceeds max-height */
-  overflow-x: hidden; /* prevent horizontal scroll */
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
-/* subtle scrollbar styling */
-.response-content::-webkit-scrollbar {
-  width: 10px;
+/* Citations section at the bottom of unified response */
+.citations-section {
+  border-top: 1px solid var(--border-color);
+  padding: 12px 20px;
+  background: var(--input-bg);
 }
-.response-content::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.08);
-  border-radius: 8px;
+
+.citations-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
 }
-.response-content::-webkit-scrollbar-track {
-  background: transparent;
+
+.citations-label svg {
+  color: #667eea;
+}
+
+.citations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.citation-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.citation-item:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.04);
+}
+
+.citation-document {
+  color: var(--text-primary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.citation-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #667eea;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.citation-link:hover {
+  color: #5a6fd6;
+}
+
+.citation-link svg {
+  flex-shrink: 0;
+}
+
+/* Markdown content styling within unified response */
+.unified-response-content h1,
+.unified-response-content h2,
+.unified-response-content h3 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.unified-response-content h1 { font-size: 18px; }
+.unified-response-content h2 { font-size: 16px; }
+.unified-response-content h3 { font-size: 15px; }
+
+.unified-response-content p {
+  margin: 0 0 10px 0;
+}
+
+.unified-response-content ul,
+.unified-response-content ol {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.unified-response-content li {
+  margin-bottom: 4px;
+}
+
+.unified-response-content strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.unified-response-content em {
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 /* Enhanced Message Meta */

@@ -224,63 +224,38 @@
               </svg>
             </div>
             <div class="message-wrapper">
-              <!-- Simplified Dual Response Layout -->
-              <div class="dual-response-container" *ngIf="message.ragAnswer || message.azureAiAnswer">
-                <!-- RAG Response -->
-                <div class="response-section chatgpt-section">
-                  <div class="response-header">
-                    <div class="response-icon chatgpt-icon">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                      </svg>
-                    </div>
-                    <span class="response-title">Knowledge Base</span>
+              <!-- Unified Response (single clean answer) -->
+              <div class="unified-response-container" *ngIf="message.ragAnswer || message.azureAiAnswer || message.content">
+                <div class="unified-response-content markdown-content" [innerHTML]="getUnifiedContent(message)"></div>
+                <!-- Citations / Sources -->
+                <div class="citations-section" *ngIf="message.citations && message.citations.length > 0">
+                  <div class="citations-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                    </svg>
+                    Sources Referenced
                   </div>
-                  <div class="response-content markdown-content" [innerHTML]="getFormattedContent(message).rag"></div>
-                  <!-- Citations with source URLs -->
-                  <div class="citations-section" *ngIf="message.citations && message.citations.length > 0">
-                    <div class="citations-label">Sources:</div>
-                    <div class="citations-list">
-                      <div class="citation-item" *ngFor="let citation of message.citations">
-                        <span class="citation-document">{{ citation.documentName || citation.source }}</span>
-                        <a 
-                          *ngIf="citation.sourceUrl" 
-                          [href]="citation.sourceUrl" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          class="citation-link"
-                          (click)="openSourceUrl($event, citation.sourceUrl!)">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" y1="14" x2="21" y2="3"></line>
-                          </svg>
-                          View Document
-                        </a>
-                      </div>
+                  <div class="citations-list">
+                    <div class="citation-item" *ngFor="let citation of message.citations">
+                      <span class="citation-document">{{ citation.documentName || citation.source }}</span>
+                      <a 
+                        *ngIf="citation.sourceUrl" 
+                        [href]="citation.sourceUrl" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="citation-link"
+                        (click)="openSourceUrl($event, citation.sourceUrl!)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                          <polyline points="15 3 21 3 21 9"></polyline>
+                          <line x1="10" y1="14" x2="21" y2="3"></line>
+                        </svg>
+                        View Document
+                      </a>
                     </div>
                   </div>
                 </div>
-
-                <!-- Azure AI Response -->
-                <div class="response-section kb-section">
-                  <div class="response-header">
-                    <div class="response-icon kb-icon">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M12 1v6m0 6v6"></path>
-                        <path d="M1 12h6m6 0h6"></path>
-                      </svg>
-                    </div>
-                    <span class="response-title">Azure AI</span>
-                  </div>
-                  <div class="response-content markdown-content" [innerHTML]="getFormattedContent(message).azure"></div>
-                </div>
-              </div>
-
-              <!-- Legacy content for backward compatibility -->
-              <div class="single-response markdown-content" *ngIf="message.content && !message.ragAnswer && !message.azureAiAnswer" [innerHTML]="renderMarkdown(message.content)">
               </div>
 
               <div class="message-meta">

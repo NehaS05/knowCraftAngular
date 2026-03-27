@@ -181,13 +181,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   // Message action methods
   copyMessage(message: Message): void {
-    let textToCopy = '';
-    
-    if (message.ragAnswer || message.azureAiAnswer) {
-      textToCopy = `Knowledge Base: ${message.ragAnswer || 'N/A'}\n\nAzure AI: ${message.azureAiAnswer || 'N/A'}`;
-    } else {
-      textToCopy = message.content || '';
-    }
+    // Copy the unified answer content
+    const textToCopy = message.ragAnswer || message.content || message.azureAiAnswer || '';
 
     navigator.clipboard.writeText(textToCopy).then(() => {
       this.toastService.success('Copied to clipboard');
@@ -552,10 +547,9 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     }
   }
 
-  getFormattedContent(message: Message): { rag: SafeHtml, azure: SafeHtml } {
-    return {
-      rag: message.ragAnswer ? this.renderMarkdown(message.ragAnswer) : '',
-      azure: message.azureAiAnswer ? this.renderMarkdown(message.azureAiAnswer) : ''
-    };
+  getUnifiedContent(message: Message): SafeHtml {
+    // Prefer ragAnswer (the unified answer), then fall back to content or azureAiAnswer for legacy messages
+    const content = message.ragAnswer || message.content || message.azureAiAnswer || '';
+    return this.renderMarkdown(content);
   }
 }
