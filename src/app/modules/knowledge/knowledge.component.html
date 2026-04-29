@@ -168,7 +168,7 @@
           </div>
         </div>
 
-        <div class="stat-card">
+        <!-- <div class="stat-card">
           <div class="stat-icon red">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
@@ -180,7 +180,7 @@
             <div class="stat-value">{{ getFailedCount() }}</div>
             <div class="stat-label">Failed</div>
           </div>
-        </div>
+        </div> -->
       </div>
 
       <!-- Sources Table -->
@@ -193,7 +193,7 @@
               <th>SOURCE TYPE</th>
               <th>FILE</th>
               <th>CATEGORY</th>
-              <th>CONDITION</th>
+              <!-- <th>CONDITION</th> -->
               <th>OPTIONS</th>
             </tr>
           </thead>
@@ -215,7 +215,7 @@
                 <span *ngIf="!source.fileName && !source.url">-</span>
               </td>
               <td>{{ source.category || '-' }}</td>
-              <td>
+              <!-- <td>
                 <div class="status-container">
                   <span class="status-badge" [ngClass]="source.status" [title]="source.status === 'Failed' && source.processingError ? source.processingError : getConditionLabel(source)">
                     {{ getConditionLabel(source) }}
@@ -239,7 +239,7 @@
                   </span>
                   <span *ngIf="source.status === 'Failed' && source.processingError" class="status-error" [title]="source.processingError">⚠️</span>
                 </div>
-              </td>
+              </td> -->
               <td>
                 <div class="table-actions">
                   <button class="table-action-btn" title="Edit" (click)="editSource(source)">
