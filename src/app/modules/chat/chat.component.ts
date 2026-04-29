@@ -457,9 +457,38 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   openSourceUrl(event: Event, url: string): void {
     event.preventDefault();
-    if (url) {
-      window.open(url, '_blank', 'noopener,noreferrer');
+
+    if (!url) return;
+
+    const lower = url.toLowerCase();
+    let finalUrl = url;
+
+    // 📄 PDF → open directly
+    if (lower.endsWith('.pdf')) {
+      finalUrl = url;
     }
+
+    // 📊 Excel / 📄 Word → open in Office Viewer
+    else if (
+      lower.endsWith('.xlsx') ||
+      lower.endsWith('.xls') ||
+      lower.endsWith('.docx') ||
+      lower.endsWith('.doc')
+    ) {
+      finalUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`;
+    }
+
+    // 📝 TXT → open directly
+    else if (lower.endsWith('.txt')) {
+      finalUrl = url;
+    }
+
+    // 🔁 fallback
+    else {
+      finalUrl = url;
+    }
+
+    window.open(finalUrl, '_blank', 'noopener,noreferrer');
   }
 
   openShareModal(): void {

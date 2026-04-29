@@ -68,6 +68,10 @@ swa deploy ./dist/knowCraft \
   --deployment-token <YOUR_DEPLOY_TOKEN>
 ```
 
+```for neha below is the deployment CLI
+swa deploy ./dist/knowCraft \ --deployment-token 12bac95390b988121aa848b2fe97916b8425cabd079c61b0e98a9495f3ab627401-c7b2aa14-9208-4136-a8fb-895ffb95fdb700f020909f82a70f
+```
+
 Replace `<YOUR_DEPLOY_TOKEN>` with your Static Web Apps deployment token.
 
 ---
