@@ -464,22 +464,22 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     let finalUrl = url;
 
     // 📄 PDF → open directly
-    if (lower.endsWith('.pdf')) {
+    if (lower.includes('.pdf')) {
       finalUrl = url;
     }
 
     // 📊 Excel / 📄 Word → open in Office Viewer
     else if (
-      lower.endsWith('.xlsx') ||
-      lower.endsWith('.xls') ||
-      lower.endsWith('.docx') ||
-      lower.endsWith('.doc')
+      lower.includes('.xlsx') ||
+      lower.includes('.xls') ||
+      lower.includes('.docx') ||
+      lower.includes('.doc')
     ) {
       finalUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`;
     }
 
     // 📝 TXT → open directly
-    else if (lower.endsWith('.txt')) {
+    else if (lower.includes('.txt')) {
       finalUrl = url;
     }
 
@@ -568,7 +568,19 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   renderMarkdown(content: string): SafeHtml {
     if (!content) return '';
     try {
-      const html = marked.parse(content, { async: false }) as string;
+      let html = marked.parse(content, { async: false }) as string;
+      // Create a temporary DOM element to parse the HTML
+      const template = document.createElement('div');
+      template.innerHTML = html;
+      // Find all anchor tags and set target and rel attributes
+      const anchors = template.getElementsByTagName('a');
+      for (let i = 0; i < anchors.length; i++) {
+        const anchor = anchors[i];
+        anchor.setAttribute('target', '_blank');
+        anchor.setAttribute('rel', 'noopener noreferrer');
+      }
+      // Update the HTML string with the modified content
+      html = template.innerHTML;
       return this.sanitizer.sanitize(1, html) || '';
     } catch (error) {
       console.error('Error rendering markdown:', error);

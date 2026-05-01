@@ -256,7 +256,7 @@ export class KnowledgeComponent implements OnInit, OnDestroy {
 
   sourceTypes: SourceType[] = [
     { value: 'file', label: 'File Upload', icon: 'file' },
-    { value: 'website', label: 'Website URL', icon: 'globe' },
+    // { value: 'website', label: 'Website URL', icon: 'globe' },
     // { value: 'text', label: 'Text Content', icon: 'text' },
     // { value: 'qa', label: 'Q&A Pairs', icon: 'help' }
   ];

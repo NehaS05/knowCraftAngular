@@ -239,9 +239,8 @@
                   <div class="citations-list">
                     <div class="citation-item" *ngFor="let citation of message.citations">
                       <span class="citation-document">{{ citation.documentName || citation.source }}</span>
-                      <a 
+                      <a style="cursor: pointer;"
                         *ngIf="citation.sourceUrl" 
-                        [href]="citation.sourceUrl" 
                         target="_blank" 
                         rel="noopener noreferrer"
                         class="citation-link"
@@ -309,7 +308,7 @@
     </div>
 
     <div class="chat-input-container">
-      <div class="doc-scope-bar" *ngIf="availableDocuments.length > 0">
+      <!-- <div class="doc-scope-bar" *ngIf="availableDocuments.length > 0">
         <button type="button" class="doc-scope-btn" (click)="toggleDocumentSelector()" [title]="selectedDocumentIds.length > 0 ? 'Search in selected docs (click to change)' : 'Search in all docs (click to restrict)'">
           <span *ngIf="selectedDocumentIds.length === 0">Search in: All documents</span>
           <span *ngIf="selectedDocumentIds.length > 0">Search in: {{ selectedDocumentIds.length }} selected</span>
@@ -323,7 +322,7 @@
             </label>
           </div>
         </div>
-      </div>
+      </div> -->
       <div class="chat-input-wrapper">
         <input 
           type="text" 
